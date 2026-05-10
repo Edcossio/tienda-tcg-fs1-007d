@@ -2,23 +2,23 @@ package com.tiendatcg.ms_usuarios.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class UsuarioRequestDTO {
     
-    @NotBlank(message="El bombre de usuario es obligatorio")
-    private String nombreUsuario;
+    /*@NotNull(message = "El id de autenticación (idAuthRef) es obligatorio")
+    private Long idAuthRef;*/
 
-    @NotBlank(message="El corre electronico es obligatorio")
-    @Email(message="Formato de correo electronico invalido")
-    private String email;
+    @NotBlank(message = "El nombre completo no puede estar vacío")
+    private String nombreCompleto;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
-    private String contraseña;
+    @NotBlank(message = "El correo electrónico es obligatorio")
+    @Email(message = "Debe ser un formato de correo electrónico válido")
+    private String correoElectronico;
 
+    // La dirección es opcional, por lo que no lleva @NotBlank
+    private String direccionFisica;
     private String rol;
     
 }

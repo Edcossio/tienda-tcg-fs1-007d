@@ -1,15 +1,14 @@
 package com.tiendatcg.ms_usuarios.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,30 +17,29 @@ import lombok.NoArgsConstructor;
 @Table(name="usuarios")
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 
 public class Usuario {
 
     // atributo id
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idPerfil;
 
+    /*@Column(nullable = false, unique = true)
+    private Long idAuthRef; // Puntero lógico a MS-Auth*/
 
-    @NotBlank
-    @Column(unique = true, nullable = false, length = 30)
-    private String nombreUsuario;
+    @Column(nullable = false, length = 150)
+    private String nombreCompleto;
 
-    @NotBlank
-    @Email
-    @Column(unique= true, nullable = false, length = 100)
-    private String email;
+    @Column(nullable = false, unique = true, length = 100)
+    private String correoElectronico;
 
-    @NotBlank
-    @Column(nullable = false, length=32)
-    private String contraseña;
+    @Column(length = 250)
+    private String direccionFisica; // Opcional
 
-    @Column(name = "rol", length = 20)
-    private String rol;
+    // Relación 1:1 física con la tabla de puntos
+    @OneToOne(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Fidelidad puntos;
 }
+

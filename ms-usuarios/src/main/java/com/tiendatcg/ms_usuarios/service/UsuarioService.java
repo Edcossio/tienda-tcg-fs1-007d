@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.tiendatcg.ms_usuarios.dto.UsuarioRequestDTO;
 import com.tiendatcg.ms_usuarios.dto.UsuarioResponseDTO;
+import com.tiendatcg.ms_usuarios.model.Fidelidad;
 import com.tiendatcg.ms_usuarios.model.Usuario;
 import com.tiendatcg.ms_usuarios.repository.UsuarioRepository;
 
@@ -18,51 +19,70 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    // private final AuthClient authClient; // Inyectamos FeignClient
+
+    private UsuarioResponseDTO mapToDTO(Usuario usuario) {
+        return new UsuarioResponseDTO(
+                usuario.getIdPerfil(),
+                // usuario.getIdAuthRef(),
+                usuario.getNombreCompleto(),
+                usuario.getCorreoElectronico(),
+                usuario.getDireccionFisica(),
+                usuario.getPuntos() != null ? usuario.getPuntos().getTotalPuntos() : 0,
+                usuario.getPuntos() != null ? usuario.getPuntos().getCategoriaVip() : "N/A"
+        );
+    }
 
     public List<UsuarioResponseDTO> obtenerTodos() {
-        return usuarioRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return usuarioRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     public Optional<UsuarioResponseDTO> obtenerPorId(Long id) {
-        return usuarioRepository.findById(id)
-                .map(this::mapToResponse);
+        return usuarioRepository.findById(id).map(this::mapToDTO);
     }
 
-    public UsuarioResponseDTO guardar(UsuarioRequestDTO request) {
-        // Validación de negocio extra:
-        if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("El email ya está registrado");
+    public UsuarioResponseDTO guardar(UsuarioRequestDTO dto) {
+        // 1. Validar que el correo no exista
+        if (usuarioRepository.findByEmail(dto.getCorreoElectronico()) != null) {
+            throw new RuntimeException("El correo electrónico ya está en uso.");
         }
-        Usuario usuario = Usuario.builder()
-                .nombreUsuario(request.getNombreUsuario())
-                .email(request.getEmail())
-                .contraseña(request.getContraseña())
-                .rol(request.getRol())
-                .build();
-        return mapToResponse(usuarioRepository.save(usuario));
+
+        // 2. Comunicarse con MS-Auth vía OpenFeign (Opcional si MS-Auth está apagado por ahora, puedes comentar esto)
+        /*
+        boolean authExiste = authClient.verificarUsuarioExiste(dto.getIdAuthRef());
+        if (!authExiste) {
+            throw new RuntimeException("El ID de Autenticación proporcionado no existe en MS-Auth.");
+        }
+        */
+
+        // 3. Crear Perfil
+        Usuario usuario = new Usuario();
+        // usuario.setIdAuthRef(dto.getIdAuthRef());
+        usuario.setNombreCompleto(dto.getNombreCompleto());
+        usuario.setCorreoElectronico(dto.getCorreoElectronico());
+        usuario.setDireccionFisica(dto.getDireccionFisica());
+
+        // 4. Crear su tarjeta de puntos inicial (1:1)
+        Fidelidad tarjetaFideliad = new Fidelidad();
+        tarjetaFideliad.setUsuario(usuario);
+        tarjetaFideliad.setTotalPuntos(0);
+        tarjetaFideliad.setCategoriaVip("NUEVO");
+
+        usuario.setPuntos(tarjetaFideliad);
+
+        return mapToDTO(usuarioRepository.save(usuario));
+    }
+
+    public Optional<UsuarioResponseDTO> actualizar(Long id, UsuarioRequestDTO dto) {
+        return usuarioRepository.findById(id).map(existente -> {
+            existente.setNombreCompleto(dto.getNombreCompleto());
+            // No actualizamos idAuthRef ni correo para evitar inconsistencias graves de identidad
+            existente.setDireccionFisica(dto.getDireccionFisica());
+            return mapToDTO(usuarioRepository.save(existente));
+        });
     }
 
     public void eliminar(Long id) {
         usuarioRepository.deleteById(id);
-    }
-
-    private UsuarioResponseDTO mapToResponse(Usuario usuario) {
-        return UsuarioResponseDTO.builder()
-                .id(usuario.getId())
-                .nombreUsuario(usuario.getNombreUsuario())
-                .email(usuario.getEmail())
-                .rol(usuario.getRol())
-                .build();
-    }
-
-    // SELECT * FROM usuarios WHERE email = ?
-    public Optional<UsuarioResponseDTO> obtenerPorEmail(String email) {
-        return usuarioRepository.findByEmail(email).map(this::mapToResponse);
-    }
-
-    public Optional<UsuarioResponseDTO> obtenerPorNombre(String nombreUsuario) {
-        return usuarioRepository.findByNombreUsuario(nombreUsuario).map(this::mapToResponse);
     }
 }
