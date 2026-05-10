@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "ms-auth", path = "/api/auth")
 public interface AuthClient {
 
-    @GetMapping("/existe/{idAuth}")
+    @GetMapping("/valid/{idAuth}")
     boolean verificarUsuarioExiste(@PathVariable("idAuth") Long idAuth);
 
 }*/
