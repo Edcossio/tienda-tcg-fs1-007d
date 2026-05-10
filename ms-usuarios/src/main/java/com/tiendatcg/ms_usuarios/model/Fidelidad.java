@@ -26,7 +26,7 @@ public class Fidelidad {
     private Long idPuntos;
 
     @OneToOne
-    @JoinColumn(name = "id_perfil", nullable = false)
+    @JoinColumn(name = "id_usuario", nullable = false)
     @JsonIgnore // Evita ciclos infinitos si se serializa
     private Usuario usuario;
 

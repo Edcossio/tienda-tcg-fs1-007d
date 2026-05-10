@@ -10,6 +10,6 @@ import com.tiendatcg.ms_usuarios.model.Usuario;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario,Long>{
 
-    Optional<Usuario> findByEmail(String correoElectronico);
-    Optional<Usuario> findByNombreUsuario(String nombreUsuario);
+    Optional<Usuario> findBycorreoElectronico(String correoElectronico);
+    Optional<Usuario> findBynombreCompleto(String nombreCompleto);
 }

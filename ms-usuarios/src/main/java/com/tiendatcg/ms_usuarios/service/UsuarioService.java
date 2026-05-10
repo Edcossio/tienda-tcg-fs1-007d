@@ -43,7 +43,7 @@ public class UsuarioService {
 
     public UsuarioResponseDTO guardar(UsuarioRequestDTO dto) {
         // 1. Validar que el correo no exista
-        if (usuarioRepository.findByEmail(dto.getCorreoElectronico()) != null) {
+        if (usuarioRepository.findBycorreoElectronico(dto.getCorreoElectronico()) != null) {
             throw new RuntimeException("El correo electrónico ya está en uso.");
         }
 
