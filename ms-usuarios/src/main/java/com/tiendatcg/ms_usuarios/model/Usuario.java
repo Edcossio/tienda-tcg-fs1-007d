@@ -39,7 +39,7 @@ public class Usuario {
     private String direccionFisica; // Opcional
 
     // Relación 1:1 física con la tabla de puntos
-    @OneToOne(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Fidelidad puntos;
 }
 
