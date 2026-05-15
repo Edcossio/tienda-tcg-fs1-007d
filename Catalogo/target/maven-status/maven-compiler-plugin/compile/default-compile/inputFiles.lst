@@ -1,0 +1,13 @@
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\CatalogoApplication.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\config\CloudConfig.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\config\PersistenceConfig.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\Controller\CatalogoController.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\DTOs\CatalogoRequestDTO.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\DTOs\CatalogoResponseDTO.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\exception\CartaNoEncontradaException.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\exception\ErrorResponse.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\exception\GlobalExceptionHandler.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\model\Catalogo.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\Repository\CatalogoRepository.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\Service\CatalogoService.java
+C:\Users\javie\Desktop\FullStack\Catalogo\src\main\java\com\ms_catalogo\Catalogo\Service\ICatalogoService.java
