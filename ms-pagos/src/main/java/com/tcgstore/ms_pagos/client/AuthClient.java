@@ -1,13 +1,13 @@
-package com.tiendatcg.ms_precios.client;
+package com.tcgstore.ms_pagos.client;
 
+import com.tcgstore.ms_pagos.dto.AuthResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import com.tiendatcg.ms_precios.dto.AuthResponseDTO;
-
 @FeignClient(name = "ms-auth", path = "/api/auth")
 public interface AuthClient {
-    @GetMapping("/es-admin/{idAuth}")
+
+    @GetMapping("/validar")
     AuthResponseDTO validarToken(@RequestHeader("Authorization") String token);
 }
