@@ -6,9 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tiendatcg.ms_precios.client.AuthClient;
 import com.tiendatcg.ms_precios.client.CatalogoClient;
-import com.tiendatcg.ms_precios.dto.AuthResponseDTO;
 import com.tiendatcg.ms_precios.dto.PrecioRequestDTO;
 import com.tiendatcg.ms_precios.dto.PrecioResponseDTO;
 import com.tiendatcg.ms_precios.model.GeneradorPrecio;
@@ -21,8 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class PrecioService {
 
     private final PrecioRepository precioRepository;
-    private final CatalogoClient catalogoClient;
-    private final AuthClient authClient;
+    private final CatalogoClient catalogoClient; // Solo mantenemos el cliente de negocio
 
     private PrecioResponseDTO mapToDTO(GeneradorPrecio precio) {
         return new PrecioResponseDTO(
@@ -32,20 +29,11 @@ public class PrecioService {
                 precio.getFechaRegistro());
     }
 
-    private AuthResponseDTO validarToken(String token) {
-        if (token == null || token.trim().isEmpty()) {
-            throw new RuntimeException("Token no proporcionado");
-        }
-        try {
-            return authClient.validarToken(token);
-        } catch (Exception e) {
-            throw new RuntimeException("Token inválido o expirado");
-        }
-    }
-
-    private boolean esRolPermitido(AuthResponseDTO auth, String... rolesPermitidos) {
+    // Adaptado para recibir el string del rol directamente
+    private boolean esRolPermitido(String rolUsuario, String... rolesPermitidos) {
+        if (rolUsuario == null) return false;
         for (String rol : rolesPermitidos) {
-            if (auth.getRol().equalsIgnoreCase(rol)) {
+            if (rolUsuario.equalsIgnoreCase(rol)) {
                 return true;
             }
         }
@@ -53,25 +41,22 @@ public class PrecioService {
     }
 
     // ========== GET (USER, EMPLEADO, ADMIN) ==========
-    public List<PrecioResponseDTO> obtenerTodos(String token) {
-        AuthResponseDTO auth = validarToken(token);
-        if (!esRolPermitido(auth, "USER", "EMPLEADO", "ADMIN")) {
+    public List<PrecioResponseDTO> obtenerTodos(String rol) {
+        if (!esRolPermitido(rol, "USER", "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: no tienes permisos para consultar precios");
         }
         return precioRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    public Optional<PrecioResponseDTO> obtenerPorId(Long id, String token) {
-        AuthResponseDTO auth = validarToken(token);
-        if (!esRolPermitido(auth, "USER", "EMPLEADO", "ADMIN")) {
+    public Optional<PrecioResponseDTO> obtenerPorId(Long id, String rol) {
+        if (!esRolPermitido(rol, "USER", "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: no tienes permisos para consultar precios");
         }
         return precioRepository.findById(id).map(this::mapToDTO);
     }
 
-    public List<PrecioResponseDTO> obtenerHistorialPorCarta(Long idCartaRef, String token) {
-        AuthResponseDTO auth = validarToken(token);
-        if (!esRolPermitido(auth, "USER", "EMPLEADO", "ADMIN")) {
+    public List<PrecioResponseDTO> obtenerHistorialPorCarta(Long idCartaRef, String rol) {
+        if (!esRolPermitido(rol, "USER", "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: no tienes permisos para consultar precios");
         }
         return precioRepository.findByIdCartaRefOrderByFechaRegistroDesc(idCartaRef)
@@ -79,14 +64,12 @@ public class PrecioService {
     }
 
     // ========== POST / PUT (EMPLEADO, ADMIN) ==========
-    public PrecioResponseDTO guardar(PrecioRequestDTO dto, String token) {
-        AuthResponseDTO auth = validarToken(token);
-        if (!esRolPermitido(auth, "EMPLEADO", "ADMIN")) {
+    public PrecioResponseDTO guardar(PrecioRequestDTO dto, String rol) {
+        if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: solo empleados o administradores pueden crear precios");
         }
 
         // Validación con ms-catalogo
-
         boolean cartaExiste = catalogoClient.verificarCartaExiste(dto.getIdCartaRef());
         if (!cartaExiste) {
             throw new RuntimeException("La carta con ID " + dto.getIdCartaRef() + " no existe en el catálogo.");
@@ -98,9 +81,8 @@ public class PrecioService {
         return mapToDTO(precioRepository.save(precio));
     }
 
-    public Optional<PrecioResponseDTO> actualizar(Long id, PrecioRequestDTO dto, String token) {
-        AuthResponseDTO auth = validarToken(token);
-        if (!esRolPermitido(auth, "EMPLEADO", "ADMIN")) {
+    public Optional<PrecioResponseDTO> actualizar(Long id, PrecioRequestDTO dto, String rol) {
+        if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: solo empleados o administradores pueden actualizar precios");
         }
 
@@ -111,12 +93,10 @@ public class PrecioService {
     }
 
     // ========== DELETE (solo ADMIN) ==========
-    public void eliminar(Long id, String token) {
-        AuthResponseDTO auth = validarToken(token);
-        if (!esRolPermitido(auth, "ADMIN")) {
+    public void eliminar(Long id, String rol) {
+        if (!esRolPermitido(rol, "ADMIN")) {
             throw new RuntimeException("Acceso denegado: solo administradores pueden eliminar precios");
         }
         precioRepository.deleteById(id);
     }
-
 }
