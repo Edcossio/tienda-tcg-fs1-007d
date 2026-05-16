@@ -1,4 +1,4 @@
-package com.ms_shopingcart.ms_shopingcart.execption;
+package com.ms_shopingcart.execption;
 
 public class CarritoNoEncontradoException extends RuntimeException {
 

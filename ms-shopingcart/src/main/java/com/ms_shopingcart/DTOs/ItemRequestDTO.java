@@ -1,4 +1,4 @@
-package com.ms_shopingcart.ms_shopingcart.DTOs;
+package com.ms_shopingcart.DTOs;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

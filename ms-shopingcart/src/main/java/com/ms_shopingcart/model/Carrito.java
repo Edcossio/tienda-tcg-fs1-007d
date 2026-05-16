@@ -1,4 +1,4 @@
-package com.ms_shopingcart.ms_shopingcart.model;
+package com.ms_shopingcart.model;
 
 import jakarta.persistence.*;
 import lombok.*;

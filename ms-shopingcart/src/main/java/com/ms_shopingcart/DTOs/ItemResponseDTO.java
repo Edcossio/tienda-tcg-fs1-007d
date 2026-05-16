@@ -1,4 +1,4 @@
-package com.ms_shopingcart.ms_shopingcart.DTOs;
+package com.ms_shopingcart.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

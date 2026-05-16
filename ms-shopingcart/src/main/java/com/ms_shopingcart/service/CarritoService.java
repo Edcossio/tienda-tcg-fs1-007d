@@ -1,7 +1,7 @@
-package com.ms_shopingcart.ms_shopingcart.service;
+package com.ms_shopingcart.service;
 
-import com.ms_shopingcart.ms_shopingcart.DTOs.CarritoResponseDTO;
-import com.ms_shopingcart.ms_shopingcart.DTOs.ItemRequestDTO;
+import com.ms_shopingcart.DTOs.CarritoResponseDTO;
+import com.ms_shopingcart.DTOs.ItemRequestDTO;
 
 public interface CarritoService {
 
