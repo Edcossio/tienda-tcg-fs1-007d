@@ -20,37 +20,44 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    public ResponseEntity<List<UsuarioResponseDTO>> obtenerTodos(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(usuarioService.obtenerTodos(token));
+    public ResponseEntity<List<UsuarioResponseDTO>> obtenerTodos(
+            @RequestHeader("X-User-Rol") String rol) {
+        return ResponseEntity.ok(usuarioService.obtenerTodos(rol));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioResponseDTO> obtenerPorId(@PathVariable Long id,
-                                                           @RequestHeader("Authorization") String token) {
-        return usuarioService.obtenerPorId(id, token)
+    public ResponseEntity<UsuarioResponseDTO> obtenerPorId(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Rol") String rol,
+            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) { // Extraemos el ID
+        return usuarioService.obtenerPorId(id, rol, idUsuarioLogueado)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<UsuarioResponseDTO> crear(@Valid @RequestBody UsuarioRequestDTO dto,
-                                                    @RequestHeader("Authorization") String token) {
-        return ResponseEntity.status(201).body(usuarioService.guardar(dto, token));
+    public ResponseEntity<UsuarioResponseDTO> crear(
+            @Valid @RequestBody UsuarioRequestDTO dto,
+            @RequestHeader("X-User-Rol") String rol) {
+        return ResponseEntity.status(201).body(usuarioService.guardar(dto, rol));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponseDTO> actualizar(@PathVariable Long id,
-                                                         @Valid @RequestBody UsuarioRequestDTO dto,
-                                                         @RequestHeader("Authorization") String token) {
-        return usuarioService.actualizar(id, dto, token)
+    public ResponseEntity<UsuarioResponseDTO> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioRequestDTO dto,
+            @RequestHeader("X-User-Rol") String rol,
+            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) { // Extraemos el ID
+        return usuarioService.actualizar(id, dto, rol, idUsuarioLogueado)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id,
-                                         @RequestHeader("Authorization") String token) {
-        usuarioService.eliminar(id, token);
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Rol") String rol) {
+        usuarioService.eliminar(id, rol);
         return ResponseEntity.noContent().build();
     }
 }

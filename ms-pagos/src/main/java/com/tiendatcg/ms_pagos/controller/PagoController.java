@@ -16,41 +16,39 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PagoController {
 
-private final PagoService pagoService;
+    private final PagoService pagoService;
 
-    // GET /api/pagos -> Solo personal autorizado (según lógica en service)
+    
     @GetMapping
     public ResponseEntity<List<PagoResponseDTO>> obtenerTodos(
-            @RequestHeader("Authorization") String token) { // <--- Recibe el token
-        return ResponseEntity.ok(pagoService.obtenerTodos(token));
+            @RequestHeader("X-User-Rol") String rol) { 
+        return ResponseEntity.ok(pagoService.obtenerTodos(rol));
     }
 
-    // GET /api/pagos/{id} -> Un USER solo puede ver su propio pago
+    
     @GetMapping("/{id}")
     public ResponseEntity<PagoResponseDTO> obtenerPorId(
             @PathVariable Long id,
-            @RequestHeader("Authorization") String token) {
-        return pagoService.obtenerPorId(id, token)
+            @RequestHeader("X-User-Rol") String rol) { 
+        return pagoService.obtenerPorId(id, rol)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/pagos/pedido/{idPedido}
-    @GetMapping("/pedido/{idPedido}")
+    @GetMapping("/pedido/{idPedidoRef}") 
     public ResponseEntity<PagoResponseDTO> obtenerPorPedido(
             @PathVariable Long idPedidoRef,
-            @RequestHeader("Authorization") String token) {
-        // Asumiendo que actualizaste el método en el Service para recibir el token
-        return pagoService.obtenerPorPedido(idPedidoRef, token) 
+            @RequestHeader("X-User-Rol") String rol) { 
+        return pagoService.obtenerPorPedido(idPedidoRef, rol) 
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST /api/pagos -> Crea el pago validando rol y monto
     @PostMapping
     public ResponseEntity<PagoResponseDTO> procesarPago(
-            @RequestHeader("Authorization") String token, // <--- Obligatorio para procesar
+            @RequestHeader("X-User-Rol") String rol, 
             @Valid @RequestBody PagoRequestDTO dto) {
-        return ResponseEntity.status(201).body(pagoService.procesarPago(dto, token));
+        return ResponseEntity.status(201).body(pagoService.procesarPago(dto, rol));
     }
 }

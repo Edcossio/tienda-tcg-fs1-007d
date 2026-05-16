@@ -3,9 +3,8 @@ package com.tiendatcg.ms_pagos.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.tiendatcg.ms_pagos.client.AuthClient;
+// Eliminamos AuthClient y AuthResponseDTO de los imports
 import com.tiendatcg.ms_pagos.client.PedidoClient;
-import com.tiendatcg.ms_pagos.dto.AuthResponseDTO;
 import com.tiendatcg.ms_pagos.dto.PagoRequestDTO;
 import com.tiendatcg.ms_pagos.dto.PagoResponseDTO;
 import com.tiendatcg.ms_pagos.model.Pago;
@@ -21,8 +20,7 @@ import java.util.stream.Collectors;
 public class PagoService {
 
     private final PagoRepository pagoRepository;
-    private final AuthClient authClient;
-    private final PedidoClient pedidoClient;
+    private final PedidoClient pedidoClient; // Solo queda el cliente que sí es de negocio
 
     private PagoResponseDTO mapToDTO(Pago pago) {
         return new PagoResponseDTO(
@@ -34,11 +32,9 @@ public class PagoService {
                 pago.getFechaTransaccion());
     }
 
-    // Solo ADMIN y EMPLEADO ven todos los pagos
-    public List<PagoResponseDTO> obtenerTodos(String token) {
-        AuthResponseDTO auth = authClient.validarToken(token);
-
-        if ("USER".equals(auth.getRol())) {
+    // Solo ADMIN y EMPLEADO ven todos los pagos. Recibimos el "rol" directamente.
+    public List<PagoResponseDTO> obtenerTodos(String rol) {
+        if ("USER".equals(rol)) {
             throw new RuntimeException("Acceso denegado: No tienes permisos para ver el historial global.");
         }
 
@@ -46,29 +42,25 @@ public class PagoService {
     }
 
     // --- REGLA: Un USER solo puede ver SU pago ---
-    public Optional<PagoResponseDTO> obtenerPorId(Long id, String token) {
-        AuthResponseDTO auth = authClient.validarToken(token);
+    public Optional<PagoResponseDTO> obtenerPorId(Long id, String rol) {
         Pago pago = pagoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
 
-        if ("USER".equals(auth.getRol())) {
-
+        if ("USER".equals(rol)) {
+            // NOTA: Aquí a futuro deberás validar si el pedido asociado a este pago
+            // realmente le pertenece al usuario que está haciendo la petición.
         }
 
         return Optional.of(mapToDTO(pago));
     }
 
-    public PagoResponseDTO procesarPago(PagoRequestDTO dto, String token) {
+    public PagoResponseDTO procesarPago(PagoRequestDTO dto, String rol) {
 
         boolean pedidoExiste = pedidoClient.verificarPedidoExiste(dto.getIdPedidoRef());
 
         if (!pedidoExiste) {
-
             throw new RuntimeException("El pedido con ID " + dto.getIdPedidoRef() + " no existe.");
-
         }
-
-        AuthResponseDTO auth = authClient.validarToken(token);
 
         // monto debe ser válido
         if (dto.getMontoTotal() == null || dto.getMontoTotal().compareTo(BigDecimal.ZERO) <= 0) {
@@ -82,27 +74,23 @@ public class PagoService {
         }
 
         // AUTORIZACION
-        if ("USER".equals(auth.getRol())) {
-
+        if ("USER".equals(rol)) {
+            // Validación extra si aplica
         }
 
         Pago pago = new Pago();
         pago.setIdPedidoRef(dto.getIdPedidoRef());
         pago.setMontoTotal(dto.getMontoTotal());
         pago.setMetodoPago(dto.getMetodoPago());
-
         // Estado inicial
-
         pago.setEstadoPago("COMPLETADO");
 
         return mapToDTO(pagoRepository.save(pago));
     }
 
     // Los empleados gestionan devoluciones o cancelaciones
-    public PagoResponseDTO anularPago(Long idPago, String token) {
-        AuthResponseDTO auth = authClient.validarToken(token);
-
-        if (!"ADMIN".equals(auth.getRol()) && !"EMPLEADO".equals(auth.getRol())) {
+    public PagoResponseDTO anularPago(Long idPago, String rol) {
+        if (!"ADMIN".equals(rol) && !"EMPLEADO".equals(rol)) {
             throw new RuntimeException("Solo el personal de la tienda puede anular pagos.");
         }
 
@@ -113,15 +101,10 @@ public class PagoService {
         return mapToDTO(pagoRepository.save(pago));
     }
 
-    public Optional<PagoResponseDTO> obtenerPorPedido(Long idPedidoRef, String token) {
-        
-        AuthResponseDTO auth = authClient.validarToken(token);
-
-        
+    public Optional<PagoResponseDTO> obtenerPorPedido(Long idPedidoRef, String rol) {
         return pagoRepository.findByIdPedidoRef(idPedidoRef).map(pago -> {
-            
-            if ("USER".equals(auth.getRol())) {
-                
+            if ("USER".equals(rol)) {
+                // Validación extra si aplica
             }
             return mapToDTO(pago);
         });

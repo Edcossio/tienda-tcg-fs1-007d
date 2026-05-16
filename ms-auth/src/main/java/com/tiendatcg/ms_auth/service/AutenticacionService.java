@@ -10,19 +10,22 @@ import com.tiendatcg.ms_auth.dto.AuthResponseDTO;
 import com.tiendatcg.ms_auth.model.Autenticacion;
 import com.tiendatcg.ms_auth.repository.AuthRepository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AutenticacionService {
+    
     private final AuthRepository repository;
     private final BCryptPasswordEncoder encoder;
-    private final UsuarioClient usuarioClient; // <--- Inyectamos el cliente
+    private final UsuarioClient usuarioClient; 
+    private final JwtService jwtService; // <--- 1. Inyectamos nuestro servicio JWT
 
     public AuthResponseDTO validarExistenciaUsuario(AuthRequestDTO dto) {
-
         try {
             usuarioClient.verificarExistencia(dto.getIdUsuarioRef());
         } catch (Exception e) {
-
             throw new RuntimeException("No se puede crear autenticación: El usuario con ID "
                     + dto.getIdUsuarioRef() + " no existe.");
         }
@@ -36,32 +39,62 @@ public class AutenticacionService {
         return mapToDTO(repository.save(user), null);
     }
 
+    // REGISTRAR
+    public AuthResponseDTO registrar(AuthRequestDTO dto) {
+        Autenticacion user = new Autenticacion();
+        user.setIdUsuarioRef(dto.getIdUsuarioRef());
+        user.setUsername(dto.getUsername());
+        user.setPassword(encoder.encode(dto.getPassword()));
+        user.setRol(dto.getRol());
 
+        return mapToDTO(repository.save(user), null);
+    }
 
+    // LOGIN (ACTUALIZADO PARA JWT)
+    public AuthResponseDTO login(String username, String password) {
+        Autenticacion user = repository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema")); 
+
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("La contraseña ingresada es incorrecta");
+        }
+
+        // 2. Cargamos los datos extra (Claims) que queremos que viajen de forma segura en el token
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("rol", user.getRol());
+        extraClaims.put("idUsuarioRef", user.getIdUsuarioRef());
+
+        // 3. Generamos el Token JWT real, firmado criptográficamente
+        String token = jwtService.generarToken(extraClaims, user.getUsername());
+
+        return mapToDTO(user, token);
+    }
+
+    // VALIDAR TOKEN (ACTUALIZADO PARA JWT)
     public AuthResponseDTO validarToken(String token) {
         if (token == null || token.trim().isEmpty()) {
             throw new RuntimeException("Token no proporcionado");
         }
-        // El token que generaste en login tiene formato "TK-rol-idUsuarioRef"
-        String[] parts = token.split("-");
-        if (parts.length != 3 || !"TK".equals(parts[0])) {
-            throw new RuntimeException("Token inválido");
+
+        // Si el Gateway o cliente envía el token con "Bearer ", se lo quitamos para evaluarlo
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
         }
-        String rol = parts[1];
-        Long idUsuarioRef;
+
         try {
-            idUsuarioRef = Long.parseLong(parts[2]);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Token mal formado");
+            // 4. Extraemos el usuario desencriptando el JWT
+            String username = jwtService.extraerUsername(token);
+
+            Autenticacion user = repository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado para el token"));
+            
+            // Retornamos la info si no falló la desencriptación
+            return mapToDTO(user, token);
+
+        } catch (Exception e) {
+            // Si el token expiró, fue modificado o tiene mala firma, JwtService lanzará un error
+            throw new RuntimeException("Token inválido o expirado");
         }
-        Autenticacion user = repository.findByIdUsuarioRef(idUsuarioRef)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado para el token"));
-        // Verificar que el rol coincida con el almacenado (opcional)
-        if (!user.getRol().equalsIgnoreCase(rol)) {
-            throw new RuntimeException("Token corrupto: rol no coincide");
-        }
-        // Devuelve el DTO con los datos (el token puede ser el mismo o regenerarlo)
-        return mapToDTO(user, token);
     }
 
     // ResponseDTO
@@ -73,33 +106,4 @@ public class AutenticacionService {
                 user.getRol(),
                 token);
     }
-
-    // REGISTRAR
-    public AuthResponseDTO registrar(AuthRequestDTO dto) {
-
-        Autenticacion user = new Autenticacion();
-        user.setIdUsuarioRef(dto.getIdUsuarioRef());
-        user.setUsername(dto.getUsername());
-
-        user.setPassword(encoder.encode(dto.getPassword()));
-        user.setRol(dto.getRol());
-
-        return mapToDTO(repository.save(user), null);
-    }
-
-    // LOGIN
-    public AuthResponseDTO login(String username, String password) {
-        Autenticacion user = repository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema")); // 400 Bad Request
-                                                                                                 // [cite: 102]
-
-        if (!encoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("La contraseña ingresada es incorrecta");
-        }
-
-        String token = "TK-" + user.getRol() + "-" + user.getIdUsuarioRef();
-
-        return mapToDTO(user, token);
-    }
-
 }
