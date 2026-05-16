@@ -26,8 +26,8 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPerfil;
 
-    /*@Column(nullable = false, unique = true)
-    private Long idAuthRef; // Puntero lógico a MS-Auth*/
+    @Column(nullable = false, unique = true)
+    private Long idAuthRef; 
 
     @Column(nullable = false, length = 150)
     private String nombreCompleto;
@@ -38,8 +38,8 @@ public class Usuario {
     @Column(length = 250)
     private String direccionFisica; // Opcional
 
-    // Relación 1:1 física con la tabla de puntos
-    @OneToOne(mappedBy = "perfil", cascade = CascadeType.ALL, orphanRemoval = true)
+    
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Fidelidad puntos;
 }
 

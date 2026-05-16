@@ -1,17 +1,17 @@
-package com.tiendatcg.ms_usuarios;
+package com.tiendatcg.ms_pagos;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@EnableDiscoveryClient
 @EnableFeignClients
+@EnableDiscoveryClient
 @SpringBootApplication
-public class MsUsuariosApplication {
-              
+public class MsPagosApplication {
+
 	public static void main(String[] args) {
-		SpringApplication.run(MsUsuariosApplication.class, args);
+		SpringApplication.run(MsPagosApplication.class, args);
 	}
 
 }

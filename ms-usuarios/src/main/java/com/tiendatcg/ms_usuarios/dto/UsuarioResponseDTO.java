@@ -9,16 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class UsuarioResponseDTO {
-
     private Long idPerfil;
-    //private Long idAuthRef; descomentar cuando implemente sping security
     private String nombreCompleto;
     private String correoElectronico;
     private String direccionFisica;
-    
-    // Datos de la tabla Fidelidad
     private Integer totalPuntos;
     private String categoriaVip;
 }
