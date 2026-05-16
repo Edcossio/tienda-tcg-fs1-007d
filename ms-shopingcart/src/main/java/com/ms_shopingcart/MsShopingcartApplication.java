@@ -1,4 +1,4 @@
-package com.ms_shopingcart.ms_shopingcart;
+package com.ms_shopingcart;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
