@@ -1,0 +1,17 @@
+com\ms_catalogo\Catalogo\Controller\CatalogoController.class
+com\ms_catalogo\Catalogo\exception\ErrorResponse$ErrorResponseBuilder.class
+com\ms_catalogo\Catalogo\model\Catalogo$CatalogoBuilder.class
+com\ms_catalogo\Catalogo\DTOs\CatalogoResponseDTO.class
+com\ms_catalogo\Catalogo\model\Catalogo.class
+com\ms_catalogo\Catalogo\CatalogoApplication.class
+com\ms_catalogo\Catalogo\DTOs\CatalogoResponseDTO$CatalogoResponseDTOBuilder.class
+com\ms_catalogo\Catalogo\config\CloudConfig.class
+com\ms_catalogo\Catalogo\DTOs\CatalogoRequestDTO.class
+com\ms_catalogo\Catalogo\exception\CartaNoEncontradaException.class
+com\ms_catalogo\Catalogo\Service\ICatalogoService.class
+com\ms_catalogo\Catalogo\exception\ErrorResponse.class
+com\ms_catalogo\Catalogo\exception\GlobalExceptionHandler.class
+com\ms_catalogo\Catalogo\DTOs\CatalogoRequestDTO$CatalogoRequestDTOBuilder.class
+com\ms_catalogo\Catalogo\Service\CatalogoService.class
+com\ms_catalogo\Catalogo\config\PersistenceConfig.class
+com\ms_catalogo\Catalogo\Repository\CatalogoRepository.class
