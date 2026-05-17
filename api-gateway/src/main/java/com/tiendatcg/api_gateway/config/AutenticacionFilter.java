@@ -20,13 +20,15 @@ public class AutenticacionFilter implements GlobalFilter {
         // 1. Obtener la ruta a la que quiere ir el cliente
         String path = exchange.getRequest().getURI().getPath();
 
-        // 2. Definir las rutas PÚBLICAS (Ajusta según tus endpoints reales)
-        if (path.contains("/api/auth/login") || path.contains("/api/auth/registrar")) {
-            return chain.filter(exchange); // Dejar pasar sin pedir token
+        // 2. HACER PÚBLICA TODA LA RUTA DE AUTH
+        // Usamos startsWith para que ignore si hay doble barra o parámetros extra
+        if (path.startsWith("/api/auth")) {
+            return chain.filter(exchange); // Dejar pasar al ms-auth sin pedir token
         }
 
         // 3. Verificar si la petición trae el header "Authorization"
         if (!exchange.getRequest().getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)) {
+            System.out.println("Bloqueado por Gateway: No trae Header de Autorización. Ruta: " + path);
             return denegarAcceso(exchange);
         }
 
@@ -38,7 +40,7 @@ public class AutenticacionFilter implements GlobalFilter {
             return denegarAcceso(exchange);
         }
 
-       try {
+        try {
             String rol = jwtUtil.extraerRol(authHeader);
             String idUsuario = jwtUtil.extraerIdUsuario(authHeader);
 
@@ -48,7 +50,7 @@ public class AutenticacionFilter implements GlobalFilter {
 
             // Solo agregamos el header del ID si realmente venía en el token
             if (idUsuario != null) {
-                requestBuilder.header("X-User-Id", idUsuario); 
+                requestBuilder.header("X-User-Id", idUsuario);
             }
 
             org.springframework.http.server.reactive.ServerHttpRequest modifiedRequest = requestBuilder.build();
@@ -57,7 +59,8 @@ public class AutenticacionFilter implements GlobalFilter {
                     .request(modifiedRequest)
                     .build();
 
-            // 7. Si todo está bien, la petición viaja al microservicio con los headers incluidos
+            // 7. Si todo está bien, la petición viaja al microservicio con los headers
+            // incluidos
             return chain.filter(modifiedExchange);
 
         } catch (Exception e) {

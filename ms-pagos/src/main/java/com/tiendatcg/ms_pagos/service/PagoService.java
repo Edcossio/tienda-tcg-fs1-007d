@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 // Eliminamos AuthClient y AuthResponseDTO de los imports
-import com.tiendatcg.ms_pagos.client.PedidoClient;
+import com.tiendatcg.ms_pagos.client.EnvioClient;
 import com.tiendatcg.ms_pagos.dto.PagoRequestDTO;
 import com.tiendatcg.ms_pagos.dto.PagoResponseDTO;
 import com.tiendatcg.ms_pagos.model.Pago;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class PagoService {
 
     private final PagoRepository pagoRepository;
-    private final PedidoClient pedidoClient; // Solo queda el cliente que sí es de negocio
+    private final EnvioClient pedidoClient; // Solo queda el cliente que sí es de negocio
 
     private PagoResponseDTO mapToDTO(Pago pago) {
         return new PagoResponseDTO(

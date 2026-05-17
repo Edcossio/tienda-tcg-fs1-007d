@@ -30,7 +30,7 @@ public class Fidelidad {
     @JsonIgnore // Evita ciclos infinitos si se serializa
     private Usuario usuario;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer totalPuntos;
 
     @Column(length = 50)
