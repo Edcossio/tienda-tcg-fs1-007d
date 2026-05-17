@@ -10,12 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * ═══════════════════════════════════════════════════
- * CLASE: DataInitializer.java (ms-catalogo)
- * Carga inicial de cartas para la Tienda TCG.
- * ═══════════════════════════════════════════════════
- */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -28,7 +23,7 @@ public class DataInitializer implements CommandLineRunner {
 
         long totalCartas = catalogoRepository.count();
 
-        //Evita duplicar datos si ya existen
+        
         if (totalCartas > 0) {
             log.info(">>> DataInitializer (ms-catalogo): La BD ya tiene {} cartas. Omitiendo carga.", totalCartas);
             return;
