@@ -11,16 +11,13 @@ import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
 
-    // Clave secreta (Debe ser de al menos 256 bits).
-    // NOTA: En producción, es mejor poner esto en tu application.properties y
-    // leerlo con @Value
+    
     private static final String SECRET_KEY = "VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGFuZCBsb25nIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduYXR1cmU="; // Equivale
                                                                                                                                  // a
                                                                                                                                  // una
@@ -31,12 +28,12 @@ public class JwtService {
                                                                                                                                  // en
                                                                                                                                  // Base64
 
-    // 1. Extraer el nombre de usuario (subject) del token
+    //Extraer el nombre de usuario del token
     public String extraerUsername(String token) {
         return extraerClaim(token, Claims::getSubject);
     }
 
-    // 2. Extraer un dato específico (claim) del token
+    // 2. Extraer un dato específico del token
     public <T> T extraerClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extraerTodosLosClaims(token);
         return claimsResolver.apply(claims);
@@ -47,8 +44,7 @@ public class JwtService {
         return generarToken(new HashMap<>(), username);
     }
 
-    // 4. Generar token con Claims extra (por si luego quieres guardar roles, email,
-    // etc.)
+    // 4. Generar token con Claims extra 
     public String generarToken(Map<String, Object> extraClaims, String username) {
         return Jwts.builder()
                 .claims(extraClaims)
@@ -59,18 +55,18 @@ public class JwtService {
                 .compact();
     }
 
-    // 5. Validar si el token pertenece al usuario y aún no ha expirado
+    // 5. Validar si el token pertenece al usuario y aun no ha expirado
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extraerUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
-    // 6. Verificar si el token ya caducó
+    // 6. Verificar si el token ya caduco
     private boolean isTokenExpired(String token) {
         return extraerExpiration(token).before(new Date());
     }
 
-    // 7. Extraer la fecha de expiración
+    // 7. Extraer la fecha de expiracion 
     private Date extraerExpiration(String token) {
         return extraerClaim(token, Claims::getExpiration);
     }
@@ -84,7 +80,7 @@ public class JwtService {
                 .getPayload(); // Se usa getPayload en lugar de getBody
     }
 
-    // 9. Obtener la llave criptográfica a partir de nuestro SECRET_KEY
+    // 9. Obtener la llave criptografica a partir de nuestro SECRET_KEY
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
