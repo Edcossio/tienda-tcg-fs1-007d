@@ -12,20 +12,26 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/envios")
 @RequiredArgsConstructor
 public class EnvioController {
+    
     private final EnvioService envioService;
 
     @GetMapping
-    public ResponseEntity<List<EnvioResponseDTO>> obtenerTodos() {
-        return ResponseEntity.ok(envioService.obtenerTodos());
+    public ResponseEntity<List<EnvioResponseDTO>> obtenerTodos(
+            @RequestHeader("X-User-Rol") String rol) { // Inyectamos el rol
+        return ResponseEntity.ok(envioService.obtenerTodos(rol));
     }
 
     @PostMapping
-    public ResponseEntity<EnvioResponseDTO> crearEnvio(@RequestBody EnvioRequestDTO request) {
-        return ResponseEntity.status(201).body(envioService.crearEnvio(request));
+    public ResponseEntity<EnvioResponseDTO> crearEnvio(
+            @RequestBody EnvioRequestDTO request,
+            @RequestHeader("X-User-Rol") String rol) { // Inyectamos el rol
+        return ResponseEntity.status(201).body(envioService.crearEnvio(request, rol));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EnvioResponseDTO> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(envioService.obtenerPorId(id));
+    public ResponseEntity<EnvioResponseDTO> obtenerPorId(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Rol") String rol) { // Inyectamos el rol
+        return ResponseEntity.ok(envioService.obtenerPorId(id, rol));
     }
 }

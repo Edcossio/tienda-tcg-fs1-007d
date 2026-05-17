@@ -1,0 +1,11 @@
+com\tiendatcg\ms_inventory\inventario\model\Inventario$InventarioBuilder.class
+com\tiendatcg\ms_inventory\inventario\model\Inventario.class
+com\tiendatcg\ms_inventory\inventario\dto\InventarioResponseDTO$InventarioResponseDTOBuilder.class
+com\tiendatcg\ms_inventory\inventario\dto\InventarioRequestDTO.class
+com\tiendatcg\ms_inventory\inventario\dto\InventarioRequestDTO$InventarioRequestDTOBuilder.class
+com\tiendatcg\ms_inventory\inventario\exception\GlobalExceptionHandler.class
+com\tiendatcg\ms_inventory\inventario\repository\InventarioRepository.class
+com\tiendatcg\ms_inventory\inventario\dto\InventarioResponseDTO.class
+com\ms_inventario\Inventario\InventarioApplication.class
+com\tiendatcg\ms_inventory\inventario\controller\InventarioController.class
+com\tiendatcg\ms_inventory\inventario\service\InventarioService.class
