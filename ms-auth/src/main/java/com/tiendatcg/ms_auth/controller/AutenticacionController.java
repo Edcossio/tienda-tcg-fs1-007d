@@ -23,14 +23,12 @@ import lombok.RequiredArgsConstructor;
 public class AutenticacionController {
     private final AutenticacionService authService;
 
-    // POST /api/auth/registrar -> 201 Created
     @PostMapping("/registrar")
     public ResponseEntity<AuthResponseDTO> registrar(@Valid @RequestBody AuthRequestDTO dto) {
-        // @Valid dispara las validaciones como @NotBlank [cite: 80, 149]
+        
         return ResponseEntity.status(201).body(authService.registrar(dto));
     }
 
-    // POST /api/auth/login -> 200 OK
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody Map<String, String> credenciales) {
         // Recibimos un mapa simple para el login

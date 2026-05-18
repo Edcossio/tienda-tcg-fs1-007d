@@ -35,7 +35,7 @@ public class PagoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET /api/pagos/pedido/{idPedido}
+    
     @GetMapping("/pedido/{idPedidoRef}") 
     public ResponseEntity<PagoResponseDTO> obtenerPorPedido(
             @PathVariable Long idPedidoRef,

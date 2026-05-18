@@ -31,42 +31,44 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info(">>> DataInitializer (ms-shopping-cart): BD vacía. Armando carritos de prueba...");
 
-        // ── CARRITO 1: Eduardo (Usuario 3) - Carrito Activo ────────
-
+        // carrito usuario 3 con item 1l e item 2l
         Carrito carritoEduardo = Carrito.builder()
                 .usuarioId(3L)
                 .build();
 
-        // 2. Creamos los items y los asociamos al carrito
+       
         ItemCarrito item1 = ItemCarrito.builder()
-                .cartaId(1L) // Charizard
+                // Charizard
+                .cartaId(1L) 
                 .cantidad(1)
                 .precioUnitario(150.00)
                 .carrito(carritoEduardo) // 
                 .build();
-        item1.calcularSubtotal(); // Llama al método que creaste en tu modelo para setear el subtotal
+        item1.calcularSubtotal(); 
 
         ItemCarrito item2 = ItemCarrito.builder()
-                .cartaId(2L) // Pikachu
+                // Pikachu
+                .cartaId(2L) 
                 .cantidad(2)
                 .precioUnitario(5.50)
                 .carrito(carritoEduardo)
                 .build();
         item2.calcularSubtotal();
 
-        // 3. Metemos los items a la lista del carrito
+        
         carritoEduardo.getItems().add(item1);
         carritoEduardo.getItems().add(item2);
 
-        // ── CARRITO 2: Otro usuario (Usuario 1) - Carrito abandonado ────────
-
+        // CARRO 2 ABANDONADO 
         Carrito carritoAbandonado = Carrito.builder()
                 .usuarioId(1L)
-                .estado("ABANDONADO") // Sobrescribimos el estado por defecto
+                // Sobrescribimos el estado 
+                .estado("ABANDONADO") 
                 .build();
 
         ItemCarrito item3 = ItemCarrito.builder()
-                .cartaId(4L) // Dragón Blanco
+                // Dragón Blanco
+                .cartaId(4L) 
                 .cantidad(1)
                 .precioUnitario(85.00)
                 .carrito(carritoAbandonado)
@@ -75,8 +77,7 @@ public class DataInitializer implements CommandLineRunner {
 
         carritoAbandonado.getItems().add(item3);
 
-        // Al guardar los carritos, JPA guardará automáticamente los Items asociados
-        // gracias a cascade = CascadeType.ALL
+       
         carritoRepository.saveAll(List.of(carritoEduardo, carritoAbandonado));
 
         log.info(">>> DataInitializer (ms-shopping-cart): Carga completada. {} carritos guardados.",

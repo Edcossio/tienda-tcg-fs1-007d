@@ -20,7 +20,7 @@ public class AutenticacionService {
     private final AuthRepository repository;
     private final BCryptPasswordEncoder encoder;
     private final UsuarioClient usuarioClient; 
-    private final JwtService jwtService; // <--- 1. Inyectamos nuestro servicio JWT
+    private final JwtService jwtService; 
 
     public AuthResponseDTO validarExistenciaUsuario(AuthRequestDTO dto) {
         try {
@@ -39,7 +39,7 @@ public class AutenticacionService {
         return mapToDTO(repository.save(user), null);
     }
 
-    // REGISTRAR
+  
     public AuthResponseDTO registrar(AuthRequestDTO dto) {
         Autenticacion user = new Autenticacion();
         user.setIdUsuarioRef(dto.getIdUsuarioRef());
@@ -50,7 +50,7 @@ public class AutenticacionService {
         return mapToDTO(repository.save(user), null);
     }
 
-    // LOGIN (ACTUALIZADO PARA JWT)
+    
     public AuthResponseDTO login(String username, String password) {
         Autenticacion user = repository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema")); 
@@ -59,40 +59,40 @@ public class AutenticacionService {
             throw new RuntimeException("La contraseña ingresada es incorrecta");
         }
 
-        // 2. Cargamos los datos extra (Claims) que queremos que viajen de forma segura en el token
+        //Cargamos los datos extra 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("rol", user.getRol());
         extraClaims.put("idUsuarioRef", user.getIdUsuarioRef());
 
-        // 3. Generamos el Token JWT real, firmado criptográficamente
+        //generar el token 
         String token = jwtService.generarToken(extraClaims, user.getUsername());
 
         return mapToDTO(user, token);
     }
 
-    // VALIDAR TOKEN (ACTUALIZADO PARA JWT)
+    // validar token 
     public AuthResponseDTO validarToken(String token) {
         if (token == null || token.trim().isEmpty()) {
             throw new RuntimeException("Token no proporcionado");
         }
 
-        // Si el Gateway o cliente envía el token con "Bearer ", se lo quitamos para evaluarlo
+        //eliminamos el barer en casa de 
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
 
         try {
-            // 4. Extraemos el usuario desencriptando el JWT
+            // extraer usuario
             String username = jwtService.extraerUsername(token);
 
             Autenticacion user = repository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado para el token"));
             
-            // Retornamos la info si no falló la desencriptación
+            // retornamos en caso de fallo
             return mapToDTO(user, token);
 
         } catch (Exception e) {
-            // Si el token expiró, fue modificado o tiene mala firma, JwtService lanzará un error
+            // atrapamos en caso de alguna exception 
             throw new RuntimeException("Token inválido o expirado");
         }
     }

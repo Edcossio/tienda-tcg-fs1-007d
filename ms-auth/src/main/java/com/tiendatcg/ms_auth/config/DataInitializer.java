@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DataInitializer implements CommandLineRunner {
 
     private final AuthRepository authRepository;
-    private final BCryptPasswordEncoder passwordEncoder; // Spring inyectará automáticamente el Bean de AuthConfig
+    private final BCryptPasswordEncoder passwordEncoder; 
 
     @Override
     public void run(String... args) throws Exception {
@@ -31,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info(">>> DataInitializer (ms-auth): Base de datos vacía. Insertando cuentas de prueba con hash BCrypt...");
 
-        // Usamos passwordEncoder.encode() para transformar el texto plano en un Hash seguro de una sola vía
+        // Usamos passwordEncoder.encode() para transformar el texto plano en un Hash seguro de una sola via
         authRepository.save(new Autenticacion(null, 1L, "admin_tcg", passwordEncoder.encode("admin123"), "ADMIN"));
         authRepository.save(new Autenticacion(null, 2L, "empleado_tcg", passwordEncoder.encode("empleado123"), "EMPLEADO"));
         authRepository.save(new Autenticacion(null, 3L, "eduardo_tcg", passwordEncoder.encode("eduardo123"), "USER"));

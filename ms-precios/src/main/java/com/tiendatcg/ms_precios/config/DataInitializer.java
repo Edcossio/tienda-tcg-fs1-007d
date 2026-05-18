@@ -38,16 +38,16 @@ public class DataInitializer implements CommandLineRunner {
 
        
 
-        // Carta 1: Carta Ultra Rara (Ej. Charizard 1ra Edición) - Alto valor
+        // charizar primer edicion
         precioRepository.save(new GeneradorPrecio(null, 1L, new BigDecimal("150.00"), null));
 
-        // Carta 2: Carta Común (Ej. Pikachu Básico) - Bajo valor
+        // pikachu basico
         precioRepository.save(new GeneradorPrecio(null, 2L, new BigDecimal("5.50"), null));
 
-        // Carta 3: Carta Competitiva Meta (Ej. Mewtwo EX) - Valor medio
+        // carta competitiva mewto
         precioRepository.save(new GeneradorPrecio(null, 3L, new BigDecimal("45.99"), null));
 
-        // Carta 4: Carta Clásica (Ej. Dragón Blanco de Ojos Azules) - Valor alto
+        // carta clasica dragon blanco de ojos azules
         precioRepository.save(new GeneradorPrecio(null, 4L, new BigDecimal("85.00"), null));
 
         log.info(">>> DataInitializer (ms-precios): Carga completada. {} precios fijados en el motor.",

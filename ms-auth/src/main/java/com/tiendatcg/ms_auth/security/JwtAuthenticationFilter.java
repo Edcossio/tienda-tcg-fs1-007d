@@ -38,23 +38,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails usuario = userDetailsService.loadUserByUsername(username);
-            // Aquí se añade la lógica para validar el token y cargar el contexto de
-            // seguridad si es válido
+            // logica para validar el token
             if (jwtService.isTokenValid(jwt, usuario)) {
 
-                // 2. Creamos el "pasaporte" oficial de Spring Security
+                
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         usuario,
-                        null, // No ponemos contraseña aquí porque ya confiamos en el token
-                        usuario.getAuthorities() // Los roles del usuario (USER, ADMIN, etc.)
+                        null, 
+                        // gettear los roles para verificar permisos en los enpoints
+                        usuario.getAuthorities() 
                 );
 
-                // 3. Le añadimos detalles extra de la petición HTTP (como la IP del cliente)
+                // detalles extras para la peticion(ip)
                 authToken.setDetails(
                         new org.springframework.security.web.authentication.WebAuthenticationDetailsSource()
                                 .buildDetails(request));
 
-                // 4. ¡Paso final! Guardamos el pasaporte en el contexto de seguridad
+                // guardar todo lo anterior
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }

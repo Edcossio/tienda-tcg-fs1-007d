@@ -34,7 +34,7 @@ public class Fidelidad {
     private Integer totalPuntos;
 
     @Column(length = 50)
-    private String categoriaVip; // Ej: Bronze, Silver, Gold (Opcional al inicio)
+    private String categoriaVip; // bronze,silver, gold solo clientes
 
 
 }

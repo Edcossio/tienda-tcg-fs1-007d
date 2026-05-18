@@ -18,7 +18,7 @@ public class UsuarioRequestDTO {
     @Email(message = "Debe ser un formato de correo electrónico válido")
     private String correoElectronico;
 
-    // La dirección es opcional, por lo que no lleva @NotBlank
+    // La direccion es opcional, por lo que no lleva @NotBlank
     private String direccionFisica;
     private String rol;
     

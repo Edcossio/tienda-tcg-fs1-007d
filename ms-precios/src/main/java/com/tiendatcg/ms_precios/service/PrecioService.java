@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class PrecioService {
 
     private final PrecioRepository precioRepository;
-    private final CatalogoClient catalogoClient; // Solo mantenemos el cliente de negocio
+    private final CatalogoClient catalogoClient; 
 
     private PrecioResponseDTO mapToDTO(GeneradorPrecio precio) {
         return new PrecioResponseDTO(
@@ -29,7 +29,7 @@ public class PrecioService {
                 precio.getFechaRegistro());
     }
 
-    // Adaptado para recibir el string del rol directamente
+
     private boolean esRolPermitido(String rolUsuario, String... rolesPermitidos) {
         if (rolUsuario == null) return false;
         for (String rol : rolesPermitidos) {
@@ -40,7 +40,7 @@ public class PrecioService {
         return false;
     }
 
-    // ========== GET (USER, EMPLEADO, ADMIN) ==========
+   
     public List<PrecioResponseDTO> obtenerTodos(String rol) {
         if (!esRolPermitido(rol, "USER", "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: no tienes permisos para consultar precios");
@@ -63,13 +63,12 @@ public class PrecioService {
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // ========== POST / PUT (EMPLEADO, ADMIN) ==========
+    
     public PrecioResponseDTO guardar(PrecioRequestDTO dto, String rol) {
         if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: solo empleados o administradores pueden crear precios");
         }
 
-        // Validación con ms-catalogo
         boolean cartaExiste = catalogoClient.verificarCartaExiste(dto.getIdCartaRef());
         if (!cartaExiste) {
             throw new RuntimeException("La carta con ID " + dto.getIdCartaRef() + " no existe en el catálogo.");
@@ -92,7 +91,7 @@ public class PrecioService {
         });
     }
 
-    // ========== DELETE (solo ADMIN) ==========
+   
     public void eliminar(Long id, String rol) {
         if (!esRolPermitido(rol, "ADMIN")) {
             throw new RuntimeException("Acceso denegado: solo administradores pueden eliminar precios");
