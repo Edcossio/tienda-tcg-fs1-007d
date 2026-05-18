@@ -1,77 +1,45 @@
 package com.tiendatcg.ms_envios.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.stereotype.Service;
-import com.tiendatcg.ms_envios.model.Envio;
-import com.tiendatcg.ms_envios.repository.EnvioRepository;
-import com.tiendatcg.ms_envios.exception.ResourceNotFoundException;
 import com.tiendatcg.ms_envios.dto.EnvioRequestDTO;
 import com.tiendatcg.ms_envios.dto.EnvioResponseDTO;
+import com.tiendatcg.ms_envios.model.Envio;
+import com.tiendatcg.ms_envios.repository.EnvioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class EnvioService {
+
     private final EnvioRepository envioRepository;
 
-    // Método de validación de roles
-    private boolean esRolPermitido(String rolUsuario, String... roles) {
-        if (rolUsuario == null) return false;
-        for (String rol : roles) {
-            if (rolUsuario.equalsIgnoreCase(rol)) {
-                return true;
-            }
-        }
-        return false;
+    // Convertir de Entidad a DTO (lo que pide el grupo)
+    private EnvioResponseDTO mapToDTO(Envio envio) {
+        return EnvioResponseDTO.builder()
+                .idEnvio(envio.getIdEnvio())
+                .idPedidoRef(envio.getIdPedidoRef())
+                .direccionDestino(envio.getDireccionDestino())
+                .transportadora(envio.getTransportadora())
+                .estadoEnvio(envio.getEstadoEnvio())
+                .build();
     }
 
-    public List<EnvioResponseDTO> obtenerTodos(String rol) {
-        // Regla: Solo el personal de la tienda puede ver todos los envíos globales
-        if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: no tienes permisos para ver el historial de envíos.");
-        }
-        
+    public List<EnvioResponseDTO> findAll() {
         return envioRepository.findAll().stream()
-                .map(this::mapToResponseDTO)
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
-    public EnvioResponseDTO obtenerPorId(Long id, String rol) {
-        // Aquí USER, EMPLEADO y ADMIN pueden entrar, pero para USER 
-        // a futuro deberías validar que el envío le pertenece (con el idPedido).
-        if (!esRolPermitido(rol, "USER", "EMPLEADO", "ADMIN")) {
-            throw new RuntimeException("Acceso denegado.");
-        }
-
-        Envio envio = envioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Envio no encontrado: " + id));
-        return mapToResponseDTO(envio);
-    }
-
-    public EnvioResponseDTO crearEnvio(EnvioRequestDTO request, String rol) {
-        // Regla: Solo el sistema o un empleado puede generar una guía de envío
-        if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: solo el personal autorizado puede registrar envíos.");
-        }
-
+    public EnvioResponseDTO save(EnvioRequestDTO dto) {
         Envio envio = new Envio();
-        envio.setIdPedidoRef(request.getIdPedidoRef());
-        envio.setDireccionDestino(request.getDireccionDestino());
-        envio.setTransportadora(request.getTransportadora());
-        envio.setEstadoEnvio(request.getEstadoEnvio());
-        
-        return mapToResponseDTO(envioRepository.save(envio));
-    }
+        envio.setIdPedidoRef(dto.getIdPedidoRef());
+        envio.setDireccionDestino(dto.getDireccionDestino());
+        envio.setTransportadora(dto.getTransportadora());
+        envio.setEstadoEnvio("PENDIENTE"); // Estado inicial por defecto
 
-    private EnvioResponseDTO mapToResponseDTO(Envio envio) {
-        EnvioResponseDTO dto = new EnvioResponseDTO();
-        dto.setIdEnvio(envio.getIdEnvio());
-        dto.setIdPedidoRef(envio.getIdPedidoRef());
-        dto.setDireccionDestino(envio.getDireccionDestino());
-        dto.setTransportadora(envio.getTransportadora());
-        dto.setEstadoEnvio(envio.getEstadoEnvio());
-        dto.setFechaCreacion(envio.getFechaCreacion());
-        return dto;
+        return mapToDTO(envioRepository.save(envio));
     }
 }

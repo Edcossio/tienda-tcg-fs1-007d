@@ -1,9 +1,11 @@
 package com.tiendatcg.ms_notificaciones.controller;
 
-import com.tiendatcg.ms_notificaciones.model.Notificacion;
-import com.tiendatcg.ms_notificaciones.repository.NotificacionRepository;
+import com.tiendatcg.ms_notificaciones.dto.NotificacionRequestDTO;
+import com.tiendatcg.ms_notificaciones.dto.NotificacionResponseDTO;
+import com.tiendatcg.ms_notificaciones.service.NotificacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -11,26 +13,15 @@ import java.util.List;
 public class NotificacionController {
 
     @Autowired
-    private NotificacionRepository repository;
+    private NotificacionService service;
 
-    
     @PostMapping
-    public Notificacion crear(@RequestBody Notificacion notificacion) {
-        return repository.save(notificacion);
+    public NotificacionResponseDTO crear(@RequestBody NotificacionRequestDTO dto) {
+        return service.crear(dto);
     }
 
-    
-    @GetMapping("/usuario/{idUsuario}")
-    public List<Notificacion> listarPorUsuario(@PathVariable Long idUsuario) {
-        return repository.findByIdUsuarioDestinoOrderByFechaCreacionDesc(idUsuario);
-    }
-
-    
-    @PutMapping("/{id}/leer")
-    public Notificacion marcarComoLeida(@PathVariable Long id) {
-        return repository.findById(id).map(notificacion -> {
-            notificacion.setLeida(true);
-            return repository.save(notificacion);
-        }).orElse(null);
+    @GetMapping("/usuario/{id}")
+    public List<NotificacionResponseDTO> listar(@PathVariable Long id) {
+        return service.listarPorUsuario(id);
     }
 }
