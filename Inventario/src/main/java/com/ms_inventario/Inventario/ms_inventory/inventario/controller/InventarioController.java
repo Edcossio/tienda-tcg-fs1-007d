@@ -23,7 +23,7 @@ import com.ms_inventario.Inventario.ms_inventory.inventario.service.InventarioSe
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/inventarios")
+@RequestMapping("/api/inventario")
 public class InventarioController {
 
     private final InventarioService inventarioService;

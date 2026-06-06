@@ -3,7 +3,15 @@ package com.tiendatcg.ms_usuarios.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.tiendatcg.ms_usuarios.dto.UsuarioRequestDTO;
 import com.tiendatcg.ms_usuarios.dto.UsuarioResponseDTO;
@@ -18,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final com.tiendatcg.ms_usuarios.repository.UsuarioRepository usuarioRepository;
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> obtenerTodos(
@@ -59,5 +68,12 @@ public class UsuarioController {
             @RequestHeader("X-User-Rol") String rol) {
         usuarioService.eliminar(id, rol);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/validar-user/{id}")
+    public ResponseEntity<Void> validarExistencia(@PathVariable Long id) {
+        return usuarioRepository.existsById(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 }

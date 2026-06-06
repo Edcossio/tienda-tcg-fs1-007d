@@ -27,7 +27,7 @@ public class Usuario {
     private Long idPerfil;
 
     // subijo REF indica que pertenece a uno de los microservicios. en este caso se refiere a is del ms-auth
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true)
     private Long idAuthRef; 
 
     @Column(nullable = false, length = 150)

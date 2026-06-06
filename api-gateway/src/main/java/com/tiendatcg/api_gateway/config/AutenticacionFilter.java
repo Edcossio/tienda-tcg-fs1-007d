@@ -20,10 +20,11 @@ public class AutenticacionFilter implements GlobalFilter {
         // 1. Obtener la ruta a la que quiere ir el cliente
         String path = exchange.getRequest().getURI().getPath();
 
-        // 2. HACER PÚBLICA TODA LA RUTA DE AUTH
-        // Usamos startsWith para que ignore si hay doble barra o parámetros extra
+        System.out.println(">>> [Gateway Filter] Path recibido: " + path);
+
         if (path.startsWith("/api/auth")) {
-            return chain.filter(exchange); // Dejar pasar al ms-auth sin pedir token
+            System.out.println(">>> [Gateway Filter] Ruta pública, dejando pasar.");
+            return chain.filter(exchange);
         }
 
         // 3. Verificar si la petición trae el header "Authorization"
@@ -69,7 +70,7 @@ public class AutenticacionFilter implements GlobalFilter {
         }
     }
 
-    // Método de ayuda para devolver Error 401 (No Autorizado)
+    // Metodo de ayuda para devolver Error 401 (No Autorizado)
     private Mono<Void> denegarAcceso(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         return exchange.getResponse().setComplete();

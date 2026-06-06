@@ -1,7 +1,6 @@
 package com.tiendatcg.ms_auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthRequestDTO {
-    @NotNull(message = "El id de usuario es obligatorio")
+    
     private Long idUsuarioRef;
 
     @NotBlank(message = "El nombre de usuario no puede estar vacío")

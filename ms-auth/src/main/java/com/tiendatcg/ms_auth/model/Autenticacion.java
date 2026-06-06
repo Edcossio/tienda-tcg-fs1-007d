@@ -21,7 +21,7 @@ public class Autenticacion {
     @Column(name = "id_auth")
     private Long idAuth; 
 
-    @Column(name = "id_usuario_ref", nullable = false)
+    @Column(name = "id_usuario_ref", nullable = true)
     //id usuario
     private Long idUsuarioRef; 
 

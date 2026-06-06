@@ -9,8 +9,10 @@ import java.security.Key;
 
 @Component
 public class JwtUtil {
-
-    private static final String SECRET_KEY = "VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGFuZCBsb25nIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduYXR1cmU=";
+    // cambio 1
+    private final String SECRET_KEY = System.getenv()
+            .getOrDefault("JWT_SECRET",
+                    "VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGFuZCBsb25nIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduYXR1cmU=");
 
     public void validarToken(final String token) {
 
@@ -40,7 +42,7 @@ public class JwtUtil {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("idUsuarioRef"); 
+                .get("idUsuarioRef");
         return id != null ? String.valueOf(id) : null;
     }
 }

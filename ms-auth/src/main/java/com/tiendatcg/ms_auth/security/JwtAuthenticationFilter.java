@@ -22,9 +22,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        // Rutas públicas — el filtro no las toca
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/registrar")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 
@@ -41,13 +51,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // logica para validar el token
             if (jwtService.isTokenValid(jwt, usuario)) {
 
-                
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         usuario,
-                        null, 
+                        null,
                         // gettear los roles para verificar permisos en los enpoints
-                        usuario.getAuthorities() 
-                );
+                        usuario.getAuthorities());
 
                 // detalles extras para la peticion(ip)
                 authToken.setDetails(

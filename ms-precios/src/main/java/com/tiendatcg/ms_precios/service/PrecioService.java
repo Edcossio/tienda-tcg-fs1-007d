@@ -12,6 +12,7 @@ import com.tiendatcg.ms_precios.dto.PrecioResponseDTO;
 import com.tiendatcg.ms_precios.model.GeneradorPrecio;
 import com.tiendatcg.ms_precios.repository.PrecioRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class PrecioService {
 
     private final PrecioRepository precioRepository;
-    private final CatalogoClient catalogoClient; 
+    private final CatalogoClient catalogoClient;
 
     private PrecioResponseDTO mapToDTO(GeneradorPrecio precio) {
         return new PrecioResponseDTO(
@@ -29,9 +30,9 @@ public class PrecioService {
                 precio.getFechaRegistro());
     }
 
-
     private boolean esRolPermitido(String rolUsuario, String... rolesPermitidos) {
-        if (rolUsuario == null) return false;
+        if (rolUsuario == null)
+            return false;
         for (String rol : rolesPermitidos) {
             if (rolUsuario.equalsIgnoreCase(rol)) {
                 return true;
@@ -40,7 +41,6 @@ public class PrecioService {
         return false;
     }
 
-   
     public List<PrecioResponseDTO> obtenerTodos(String rol) {
         if (!esRolPermitido(rol, "USER", "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: no tienes permisos para consultar precios");
@@ -63,7 +63,6 @@ public class PrecioService {
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    
     public PrecioResponseDTO guardar(PrecioRequestDTO dto, String rol) {
         if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
             throw new RuntimeException("Acceso denegado: solo empleados o administradores pueden crear precios");
@@ -91,11 +90,19 @@ public class PrecioService {
         });
     }
 
-   
+    @Transactional
     public void eliminar(Long id, String rol) {
         if (!esRolPermitido(rol, "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: solo administradores pueden eliminar precios");
+            throw new RuntimeException(
+                    "Acceso denegado: solo administradores pueden eliminar precios.");
         }
+
+        // Verificación y eliminación en una sola transacción — sin condición de carrera
+        if (!precioRepository.existsById(id)) {
+            throw new RuntimeException(
+                    "Precio no encontrado con ID: " + id);
+        }
+
         precioRepository.deleteById(id);
     }
 }

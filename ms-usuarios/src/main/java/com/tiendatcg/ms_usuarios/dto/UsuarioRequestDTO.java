@@ -2,13 +2,12 @@ package com.tiendatcg.ms_usuarios.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class UsuarioRequestDTO {
     
-    @NotNull(message = "El id de autenticación (idAuthRef) es obligatorio")
+
     private Long idAuthRef;
 
     @NotBlank(message = "El nombre completo no puede estar vacío")
