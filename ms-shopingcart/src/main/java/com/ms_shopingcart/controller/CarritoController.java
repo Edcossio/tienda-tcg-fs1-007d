@@ -1,4 +1,4 @@
-package com.ms_shopingcart.ms_shopingcart.controller;
+package com.ms_shopingcart.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ms_shopingcart.ms_shopingcart.DTOs.CarritoResponseDTO;
-import com.ms_shopingcart.ms_shopingcart.DTOs.ItemRequestDTO;
-import com.ms_shopingcart.ms_shopingcart.service.CarritoService;
+import com.ms_shopingcart.DTOs.CarritoResponseDTO;
+import com.ms_shopingcart.DTOs.ItemRequestDTO;
+import com.ms_shopingcart.service.CarritoService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

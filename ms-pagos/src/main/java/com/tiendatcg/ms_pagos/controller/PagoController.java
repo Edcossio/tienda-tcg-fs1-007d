@@ -18,37 +18,37 @@ public class PagoController {
 
     private final PagoService pagoService;
 
-    
     @GetMapping
     public ResponseEntity<List<PagoResponseDTO>> obtenerTodos(
-            @RequestHeader("X-User-Rol") String rol) { 
+            @RequestHeader("X-User-Rol") String rol) {
         return ResponseEntity.ok(pagoService.obtenerTodos(rol));
     }
 
-    
     @GetMapping("/{id}")
     public ResponseEntity<PagoResponseDTO> obtenerPorId(
             @PathVariable Long id,
-            @RequestHeader("X-User-Rol") String rol) { 
-        return pagoService.obtenerPorId(id, rol)
+            @RequestHeader("X-User-Rol") String rol,
+            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) {
+        return pagoService.obtenerPorId(id, rol, idUsuarioLogueado)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET /api/pagos/pedido/{idPedido}
-    @GetMapping("/pedido/{idPedidoRef}") 
+    @GetMapping("/pedido/{idPedidoRef}")
     public ResponseEntity<PagoResponseDTO> obtenerPorPedido(
             @PathVariable Long idPedidoRef,
-            @RequestHeader("X-User-Rol") String rol) { 
-        return pagoService.obtenerPorPedido(idPedidoRef, rol) 
+            @RequestHeader("X-User-Rol") String rol) {
+        return pagoService.obtenerPorPedido(idPedidoRef, rol)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<PagoResponseDTO> procesarPago(
-            @RequestHeader("X-User-Rol") String rol, 
+            @RequestHeader("X-User-Rol") String rol,
+            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado,
             @Valid @RequestBody PagoRequestDTO dto) {
-        return ResponseEntity.status(201).body(pagoService.procesarPago(dto, rol));
+        return ResponseEntity.status(201)
+                .body(pagoService.procesarPago(dto, rol, idUsuarioLogueado));
     }
 }

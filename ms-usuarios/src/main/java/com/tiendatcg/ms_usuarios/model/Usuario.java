@@ -26,7 +26,8 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPerfil;
 
-    @Column(nullable = false, unique = true)
+    // subijo REF indica que pertenece a uno de los microservicios. en este caso se refiere a is del ms-auth
+    @Column(nullable = true)
     private Long idAuthRef; 
 
     @Column(nullable = false, length = 150)

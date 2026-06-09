@@ -2,87 +2,103 @@ package com.tiendatcg.ms_auth.service;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class JwtService {
 
-    
-    private static final String SECRET_KEY = "VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGFuZCBsb25nIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduYXR1cmU="; // Equivale
-                                                                                                                                 // a
-                                                                                                                                 // una
-                                                                                                                                 // frase
-                                                                                                                                 // secreta
-                                                                                                                                 // muy
-                                                                                                                                 // larga
-                                                                                                                                 // en
-                                                                                                                                 // Base64
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    //Extraer el nombre de usuario del token
-    public String extraerUsername(String token) {
-        return extraerClaim(token, Claims::getSubject);
+    // Falla en arranque si el secret no esta configurado correctamente
+    @PostConstruct
+    public void validarSecretKey() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException(
+                    "[MS-AUTH] CRÍTICO: jwt.secret no está configurado. " +
+                            "El servicio no puede arrancar sin una clave JWT segura.");
+        }
+        if (secretKey.length() < 32) {
+            throw new IllegalStateException(
+                    "[MS-AUTH] CRÍTICO: jwt.secret es demasiado corta. " +
+                            "Debe tener al menos 32 caracteres en Base64.");
+        }
+        log.info("[MS-AUTH] Secret JWT cargado correctamente desde configuración.");
     }
 
-    // 2. Extraer un dato específico del token
-    public <T> T extraerClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extraerTodosLosClaims(token);
-        return claimsResolver.apply(claims);
-    }
+    //Generacion
 
-    // 3. Generar token solo con el username (Para usar en tu AutenticacionService)
-    public String generarToken(String username) {
-        return generarToken(new HashMap<>(), username);
-    }
-
-    // 4. Generar token con Claims extra 
     public String generarToken(Map<String, Object> extraClaims, String username) {
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // Expira en 24 horas
-                .signWith(getSignInKey()) 
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24))
+                .signWith(getSignInKey())
                 .compact();
     }
 
-    // 5. Validar si el token pertenece al usuario y aun no ha expirado
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extraerUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    //Validacion
+    public boolean validarToken(String token) {
+        try {
+            extraerTodosLosClaims(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            log.warn("[JWT] Token inválido: {}", e.getMessage());
+            return false;
+        }
     }
 
-    // 6. Verificar si el token ya caduco
     private boolean isTokenExpired(String token) {
         return extraerExpiration(token).before(new Date());
     }
 
-    // 7. Extraer la fecha de expiracion 
+    //Extraccion claims 
+    public String extraerUsername(String token) {
+        return extraerClaim(token, Claims::getSubject);
+    }
+
+    public String extraerRol(String token) {
+        return extraerClaim(token, claims -> claims.get("rol", String.class));
+    }
+
+    public String extraerIdUsuario(String token) {
+        Object id = extraerClaim(token, claims -> claims.get("idUsuarioRef"));
+        return id != null ? id.toString() : null;
+    }
+
+    public <T> T extraerClaim(String token, Function<Claims, T> claimsResolver) {
+        return claimsResolver.apply(extraerTodosLosClaims(token));
+    }
+
     private Date extraerExpiration(String token) {
         return extraerClaim(token, Claims::getExpiration);
     }
 
-    // 8. Desencriptar el token completo para leer su contenido
+    //Infraestructura 
+
     private Claims extraerTodosLosClaims(String token) {
         return Jwts.parser()
-                .verifyWith((javax.crypto.SecretKey) getSignInKey()) // Se usa verifyWith en lugar de setSigningKey
+                .verifyWith((javax.crypto.SecretKey) getSignInKey())
                 .build()
-                .parseSignedClaims(token) // Se usa parseSignedClaims en lugar de parseClaimsJws
-                .getPayload(); // Se usa getPayload en lugar de getBody
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
-    // 9. Obtener la llave criptografica a partir de nuestro SECRET_KEY
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

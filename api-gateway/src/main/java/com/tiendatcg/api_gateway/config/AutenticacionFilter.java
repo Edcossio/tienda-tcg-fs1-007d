@@ -1,6 +1,7 @@
 package com.tiendatcg.api_gateway.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.http.HttpHeaders;
@@ -9,64 +10,88 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AutenticacionFilter implements GlobalFilter {
 
     private final JwtUtil jwtUtil;
 
+    private static final List<String> RUTAS_PUBLICAS = List.of(
+            "/api/auth/login",
+            "/api/auth/registrar",
+            "/api/auth/validar-token",
+            "/api/auth/extraer-claims");
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 1. Obtener la ruta a la que quiere ir el cliente
         String path = exchange.getRequest().getURI().getPath();
 
-        // 2. Definir las rutas PÚBLICAS (Ajusta según tus endpoints reales)
-        if (path.contains("/api/auth/login") || path.contains("/api/auth/registrar")) {
-            return chain.filter(exchange); // Dejar pasar sin pedir token
+        boolean esPublica = RUTAS_PUBLICAS.stream().anyMatch(path::startsWith);
+        if (esPublica) {
+            log.debug("[GATEWAY] Ruta pública, sin validación JWT: {}", path);
+            return chain.filter(exchange);
         }
 
-        // 3. Verificar si la petición trae el header "Authorization"
-        if (!exchange.getRequest().getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)) {
+        String authHeader = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || authHeader.isBlank()) {
+            log.warn("[GATEWAY] Petición sin header Authorization en path: {}", path);
             return denegarAcceso(exchange);
         }
 
-        // 4. Extraer el token
-        String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            authHeader = authHeader.substring(7); // Quitar "Bearer "
-        } else {
+        if (!authHeader.startsWith("Bearer ")) {
+            log.warn("[GATEWAY] Header Authorization mal formado en path: {}", path);
             return denegarAcceso(exchange);
         }
 
-       try {
-            String rol = jwtUtil.extraerRol(authHeader);
-            String idUsuario = jwtUtil.extraerIdUsuario(authHeader);
+        String token = authHeader.substring(7);
 
-            // 6. MUTAR LA PETICIÓN: Preparamos la petición para agregarle los headers
-            var requestBuilder = exchange.getRequest().mutate()
-                    .header("X-User-Rol", rol); // Agregamos el rol
-
-            // Solo agregamos el header del ID si realmente venía en el token
-            if (idUsuario != null) {
-                requestBuilder.header("X-User-Id", idUsuario); 
+        try {
+            if (!jwtUtil.validarToken(token)) {
+                log.warn("[GATEWAY] Token inválido o expirado en path: {}", path);
+                return denegarAcceso(exchange);
             }
 
-            org.springframework.http.server.reactive.ServerHttpRequest modifiedRequest = requestBuilder.build();
+            String rol = jwtUtil.extraerRol(token);
+            String idUsuario = jwtUtil.extraerIdUsuario(token);
 
-            org.springframework.web.server.ServerWebExchange modifiedExchange = exchange.mutate()
-                    .request(modifiedRequest)
+            log.debug("[GATEWAY] Token válido. Usuario ID: {} Rol: {} Path: {}",
+                    idUsuario, rol, path);
+
+            var requestBuilder = exchange.getRequest().mutate()
+                    .header("X-User-Rol", rol);
+
+            if (idUsuario != null) {
+                requestBuilder.header("X-User-Id", idUsuario);
+            }
+
+            var modifiedExchange = exchange.mutate()
+                    .request(requestBuilder.build())
                     .build();
 
-            // 7. Si todo está bien, la petición viaja al microservicio con los headers incluidos
             return chain.filter(modifiedExchange);
 
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.warn("[GATEWAY] Token expirado en path {}: {}", path, e.getMessage());
+            return denegarAcceso(exchange);
+
+        } catch (io.jsonwebtoken.MalformedJwtException | io.jsonwebtoken.security.SignatureException e) {
+            log.warn("[GATEWAY] Token malformado o firma inválida en path {}: {}",
+                    path, e.getMessage());
+            return denegarAcceso(exchange);
+
         } catch (Exception e) {
-            System.out.println("Token inválido o expirado: " + e.getMessage());
+            log.error("[GATEWAY] Error inesperado procesando token en path {}: {}",
+                    path, e.getMessage(), e);
             return denegarAcceso(exchange);
         }
     }
 
-    // Método de ayuda para devolver Error 401 (No Autorizado)
     private Mono<Void> denegarAcceso(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         return exchange.getResponse().setComplete();

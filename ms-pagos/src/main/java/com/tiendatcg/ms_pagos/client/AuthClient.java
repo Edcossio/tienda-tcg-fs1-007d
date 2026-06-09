@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.tiendatcg.ms_pagos.dto.AuthResponseDTO;
 
-@FeignClient(name = "ms-auth",path = "/api/auth")
+@FeignClient(name = "ms-auth", path = "/api/auth", fallback = AuthClientFallback.class)
 public interface AuthClient {
 
     @GetMapping("/validar-token")

@@ -3,7 +3,15 @@ package com.tiendatcg.ms_usuarios.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.tiendatcg.ms_usuarios.dto.UsuarioRequestDTO;
 import com.tiendatcg.ms_usuarios.dto.UsuarioResponseDTO;
@@ -29,7 +37,9 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponseDTO> obtenerPorId(
             @PathVariable Long id,
             @RequestHeader("X-User-Rol") String rol,
-            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) { // Extraemos el ID
+            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) {
+        System.out.println(">>> X-User-Rol recibido: [" + rol + "]");
+        System.out.println(">>> X-User-Id recibido: [" + idUsuarioLogueado + "]"); // Extraemos el ID
         return usuarioService.obtenerPorId(id, rol, idUsuarioLogueado)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -59,5 +69,10 @@ public class UsuarioController {
             @RequestHeader("X-User-Rol") String rol) {
         usuarioService.eliminar(id, rol);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/validar-user/{id}")
+    public ResponseEntity<Boolean> validarUser(@PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.existePorId(id));
     }
 }

@@ -1,26 +1,28 @@
 package com.tiendatcg.ms_pagos.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-// Eliminamos AuthClient y AuthResponseDTO de los imports
-import com.tiendatcg.ms_pagos.client.PedidoClient;
-import com.tiendatcg.ms_pagos.dto.PagoRequestDTO;
-import com.tiendatcg.ms_pagos.dto.PagoResponseDTO;
-import com.tiendatcg.ms_pagos.model.Pago;
-import com.tiendatcg.ms_pagos.repository.PagoRepository;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.tiendatcg.ms_pagos.client.PedidoClient;
+import com.tiendatcg.ms_pagos.dto.PagoRequestDTO;
+import com.tiendatcg.ms_pagos.dto.PagoResponseDTO;
+import com.tiendatcg.ms_pagos.exception.AccesoDenegado;
+import com.tiendatcg.ms_pagos.exception.NotFound;
+import com.tiendatcg.ms_pagos.model.Pago;
+import com.tiendatcg.ms_pagos.repository.PagoRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class PagoService {
 
     private final PagoRepository pagoRepository;
-    private final PedidoClient pedidoClient; // Solo queda el cliente que sí es de negocio
+    private final PedidoClient pedidoClient;
 
     private PagoResponseDTO mapToDTO(Pago pago) {
         return new PagoResponseDTO(
@@ -32,34 +34,40 @@ public class PagoService {
                 pago.getFechaTransaccion());
     }
 
-    // Solo ADMIN y EMPLEADO ven todos los pagos. Recibimos el "rol" directamente.
     public List<PagoResponseDTO> obtenerTodos(String rol) {
         if ("USER".equals(rol)) {
-            throw new RuntimeException("Acceso denegado: No tienes permisos para ver el historial global.");
+            throw new AccesoDenegado("Acceso denegado: No tienes permisos para ver el historial global.");
         }
 
         return pagoRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // --- REGLA: Un USER solo puede ver SU pago ---
-    public Optional<PagoResponseDTO> obtenerPorId(Long id, String rol) {
+    public Optional<PagoResponseDTO> obtenerPorId(Long id, String rol, Long idUsuarioLogueado) {
         Pago pago = pagoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
+                .orElseThrow(() -> new NotFound("Pago no encontrado"));
 
         if ("USER".equals(rol)) {
-            // NOTA: Aquí a futuro deberás validar si el pedido asociado a este pago
-            // realmente le pertenece al usuario que está haciendo la petición.
+            if (idUsuarioLogueado == null) {
+                throw new AccesoDenegado("No se pudo identificar al usuario.");
+            }
+            // Verificar que el pedido del pago pertenece al usuario logueado
+            boolean esPropietario = pedidoClient
+                    .verificarPropietarioPedido(pago.getIdPedidoRef(), idUsuarioLogueado);
+            if (!esPropietario) {
+                throw new AccesoDenegado(
+                        "Acceso denegado: no puedes ver el pago de otro usuario.");
+            }
         }
 
         return Optional.of(mapToDTO(pago));
     }
 
-    public PagoResponseDTO procesarPago(PagoRequestDTO dto, String rol) {
+    public PagoResponseDTO procesarPago(PagoRequestDTO dto, String rol, Long idUsuarioLogueado) {
 
         boolean pedidoExiste = pedidoClient.verificarPedidoExiste(dto.getIdPedidoRef());
 
         if (!pedidoExiste) {
-            throw new RuntimeException("El pedido con ID " + dto.getIdPedidoRef() + " no existe.");
+            throw new NotFound("El pedido con ID " + dto.getIdPedidoRef() + " no existe.");
         }
 
         // monto debe ser válido
@@ -73,16 +81,23 @@ public class PagoService {
             throw new RuntimeException("Este pedido ya se encuentra pagado.");
         }
 
-        // AUTORIZACION
+        // AUTORIZACIÓN — USER solo puede pagar sus propios pedidos
         if ("USER".equals(rol)) {
-            // Validación extra si aplica
+            if (idUsuarioLogueado == null) {
+                throw new AccesoDenegado("No se pudo identificar al usuario.");
+            }
+            boolean esPropietario = pedidoClient
+                    .verificarPropietarioPedido(dto.getIdPedidoRef(), idUsuarioLogueado);
+            if (!esPropietario) {
+                throw new AccesoDenegado(
+                        "Acceso denegado: no puedes pagar un pedido que no es tuyo.");
+            }
         }
 
         Pago pago = new Pago();
         pago.setIdPedidoRef(dto.getIdPedidoRef());
         pago.setMontoTotal(dto.getMontoTotal());
         pago.setMetodoPago(dto.getMetodoPago());
-        // Estado inicial
         pago.setEstadoPago("COMPLETADO");
 
         return mapToDTO(pagoRepository.save(pago));
@@ -91,11 +106,11 @@ public class PagoService {
     // Los empleados gestionan devoluciones o cancelaciones
     public PagoResponseDTO anularPago(Long idPago, String rol) {
         if (!"ADMIN".equals(rol) && !"EMPLEADO".equals(rol)) {
-            throw new RuntimeException("Solo el personal de la tienda puede anular pagos.");
+            throw new AccesoDenegado("Solo el personal de la tienda puede anular pagos.");
         }
 
         Pago pago = pagoRepository.findById(idPago)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
+                .orElseThrow(() -> new NotFound("Pago no encontrado"));
 
         pago.setEstadoPago("ANULADO");
         return mapToDTO(pagoRepository.save(pago));
@@ -104,7 +119,7 @@ public class PagoService {
     public Optional<PagoResponseDTO> obtenerPorPedido(Long idPedidoRef, String rol) {
         return pagoRepository.findByIdPedidoRef(idPedidoRef).map(pago -> {
             if ("USER".equals(rol)) {
-                // Validación extra si aplica
+                // Validacion extra si aplica
             }
             return mapToDTO(pago);
         });

@@ -1,4 +1,5 @@
 package com.tiendatcg.ms_precios.controller;
+
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -20,14 +21,14 @@ public class PrecioController {
 
     @GetMapping
     public ResponseEntity<List<PrecioResponseDTO>> obtenerTodos(
-            @RequestHeader("X-User-Rol") String rol) { 
+            @RequestHeader("X-User-Rol") String rol) {
         return ResponseEntity.ok(precioService.obtenerTodos(rol));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PrecioResponseDTO> obtenerPorId(
             @PathVariable Long id,
-            @RequestHeader("X-User-Rol") String rol) { 
+            @RequestHeader("X-User-Rol") String rol) {
         return precioService.obtenerPorId(id, rol)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -36,14 +37,14 @@ public class PrecioController {
     @GetMapping("/carta/{idCarta}")
     public ResponseEntity<List<PrecioResponseDTO>> obtenerHistorialPorCarta(
             @PathVariable Long idCarta,
-            @RequestHeader("X-User-Rol") String rol) { 
+            @RequestHeader("X-User-Rol") String rol) {
         return ResponseEntity.ok(precioService.obtenerHistorialPorCarta(idCarta, rol));
     }
 
     @PostMapping
     public ResponseEntity<PrecioResponseDTO> crear(
             @Valid @RequestBody PrecioRequestDTO dto,
-            @RequestHeader("X-User-Rol") String rol) { 
+            @RequestHeader("X-User-Rol") String rol) {
         return ResponseEntity.status(201).body(precioService.guardar(dto, rol));
     }
 
@@ -51,7 +52,7 @@ public class PrecioController {
     public ResponseEntity<PrecioResponseDTO> actualizar(
             @PathVariable Long id,
             @Valid @RequestBody PrecioRequestDTO dto,
-            @RequestHeader("X-User-Rol") String rol) { 
+            @RequestHeader("X-User-Rol") String rol) {
         return precioService.actualizar(id, dto, rol)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -60,10 +61,7 @@ public class PrecioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(
             @PathVariable Long id,
-            @RequestHeader("X-User-Rol") String rol) { 
-        if (precioService.obtenerPorId(id, rol).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+            @RequestHeader("X-User-Rol") String rol) {
         precioService.eliminar(id, rol);
         return ResponseEntity.noContent().build();
     }

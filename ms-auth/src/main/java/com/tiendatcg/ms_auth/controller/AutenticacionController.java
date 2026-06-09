@@ -4,7 +4,9 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,19 +20,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AutenticacionController {
     private final AutenticacionService authService;
 
-    // POST /api/auth/registrar -> 201 Created
     @PostMapping("/registrar")
     public ResponseEntity<AuthResponseDTO> registrar(@Valid @RequestBody AuthRequestDTO dto) {
-        // @Valid dispara las validaciones como @NotBlank [cite: 80, 149]
+
         return ResponseEntity.status(201).body(authService.registrar(dto));
     }
 
-    // POST /api/auth/login -> 200 OK
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody Map<String, String> credenciales) {
         // Recibimos un mapa simple para el login
@@ -42,5 +42,13 @@ public class AutenticacionController {
     @GetMapping("/validar-token")
     public ResponseEntity<AuthResponseDTO> validarToken(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(authService.validarToken(token));
+    }
+
+    @PutMapping("/vincular/{idAuth}")
+    public ResponseEntity<AuthResponseDTO> vincularUsuario(
+            @PathVariable Long idAuth,
+            @RequestBody Map<String, Long> body) {
+
+        return ResponseEntity.ok(authService.vincularUsuario(idAuth, body.get("idUsuarioRef")));
     }
 }

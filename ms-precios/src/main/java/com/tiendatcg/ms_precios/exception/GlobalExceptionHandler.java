@@ -1,29 +1,42 @@
 package com.tiendatcg.ms_precios.exception;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestController
+import lombok.extern.slf4j.Slf4j;
+
+@RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
-     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        Map<String, String> errores = new LinkedHashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> errores.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity.badRequest().body(errores);
+    // Captura todas nuestras excepciones 
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, String>> handleApiException(ApiException ex) {
+        log.warn("[MS-PRECIOS] {}: {}", ex.getStatus(), ex.getMessage());
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(Map.of("error", ex.getMessage()));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
-        Map<String, String> error = new LinkedHashMap<>();
-        error.put("error", ex.getMessage());
-        HttpStatus status = ex.getMessage().contains("token") ? HttpStatus.UNAUTHORIZED : HttpStatus.BAD_REQUEST;
-        return ResponseEntity.status(status).body(error);
+    // Captura errores de validacion
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidacion(MethodArgumentNotValidException ex) {
+        String primerError = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .orElse("Error de validación");
+        return ResponseEntity.badRequest().body(Map.of("error", primerError));
+    }
+
+    // Errores inesperados
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
+        log.error("[MS-PRECIOS] Error inesperado: {}", ex.getMessage(), ex);
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Error interno del servidor. Contacte al administrador."));
     }
 }

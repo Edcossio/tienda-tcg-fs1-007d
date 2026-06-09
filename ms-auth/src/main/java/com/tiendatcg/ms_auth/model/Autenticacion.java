@@ -19,10 +19,11 @@ public class Autenticacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_auth")
-    private Long idAuth; // #id_auth
+    private Long idAuth; 
 
-    @Column(name = "id_usuario_ref", nullable = false)
-    private Long idUsuarioRef; // * id usuario
+    @Column(name = "id_usuario_ref", nullable = true)
+    //id usuario
+    private Long idUsuarioRef; 
 
     @Column(name = "nombre_usuario", nullable = false, unique = true, length = 50)
     private String username;

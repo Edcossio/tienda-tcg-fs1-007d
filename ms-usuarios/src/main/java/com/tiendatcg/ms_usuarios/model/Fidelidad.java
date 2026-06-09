@@ -30,11 +30,11 @@ public class Fidelidad {
     @JsonIgnore // Evita ciclos infinitos si se serializa
     private Usuario usuario;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer totalPuntos;
 
     @Column(length = 50)
-    private String categoriaVip; // Ej: Bronze, Silver, Gold (Opcional al inicio)
+    private String categoriaVip; // bronze,silver, gold solo clientes
 
 
 }
