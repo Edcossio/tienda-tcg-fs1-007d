@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final com.tiendatcg.ms_usuarios.repository.UsuarioRepository usuarioRepository;
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> obtenerTodos(
@@ -38,7 +37,9 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponseDTO> obtenerPorId(
             @PathVariable Long id,
             @RequestHeader("X-User-Rol") String rol,
-            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) { // Extraemos el ID
+            @RequestHeader(value = "X-User-Id", required = false) Long idUsuarioLogueado) {
+        System.out.println(">>> X-User-Rol recibido: [" + rol + "]");
+        System.out.println(">>> X-User-Id recibido: [" + idUsuarioLogueado + "]"); // Extraemos el ID
         return usuarioService.obtenerPorId(id, rol, idUsuarioLogueado)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -71,9 +72,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/validar-user/{id}")
-    public ResponseEntity<Void> validarExistencia(@PathVariable Long id) {
-        return usuarioRepository.existsById(id)
-                ? ResponseEntity.ok().build()
-                : ResponseEntity.notFound().build();
+    public ResponseEntity<Boolean> validarUser(@PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.existePorId(id));
     }
 }

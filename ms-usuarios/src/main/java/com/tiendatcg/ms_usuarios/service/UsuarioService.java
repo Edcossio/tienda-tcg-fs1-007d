@@ -4,16 +4,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tiendatcg.ms_usuarios.dto.UsuarioRequestDTO;
 import com.tiendatcg.ms_usuarios.dto.UsuarioResponseDTO;
+import com.tiendatcg.ms_usuarios.exception.AccesoDenegado;
+import com.tiendatcg.ms_usuarios.exception.ApiException;
+import com.tiendatcg.ms_usuarios.exception.NotFound;
 import com.tiendatcg.ms_usuarios.model.Fidelidad;
 import com.tiendatcg.ms_usuarios.model.Usuario;
 import com.tiendatcg.ms_usuarios.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
@@ -32,7 +38,8 @@ public class UsuarioService {
     }
 
     private boolean esRolPermitido(String rolUsuario, String... roles) {
-        if (rolUsuario == null) return false;
+        if (rolUsuario == null)
+            return false;
         for (String rol : roles) {
             if (rolUsuario.equalsIgnoreCase(rol)) {
                 return true;
@@ -41,39 +48,47 @@ public class UsuarioService {
         return false;
     }
 
-    // ========== GET ==========
+    // GET
     public List<UsuarioResponseDTO> obtenerTodos(String rol) {
         // Solo EMPLEADO o ADMIN pueden ver todos los usuarios
         if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: solo empleados o administradores pueden listar todos los usuarios");
+            throw new AccesoDenegado(
+                    "Acceso denegado: solo empleados o administradores pueden listar todos los usuarios");
         }
+        log.info("[MS-USUARIOS] Listando todos los usuarios. Rol: {}", rol);
         return usuarioRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     public Optional<UsuarioResponseDTO> obtenerPorId(Long id, String rol, Long idUsuarioLogueado) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFound("Usuario no encontrado con ID: " + id));
+
+        // ADMIN y EMPLEADO pueden ver cualquier perfil
+        if (esRolPermitido(rol, "ADMIN", "EMPLEADO")) {
+            return Optional.of(mapToDTO(usuario));
+        }
 
         // USER solo puede ver su propio perfil
         if (esRolPermitido(rol, "USER")) {
-            if (!idUsuarioLogueado.equals(usuario.getIdPerfil())) {
-                throw new RuntimeException("Acceso denegado: no puedes ver el perfil de otro usuario");
+            if (idUsuarioLogueado == null || !idUsuarioLogueado.equals(usuario.getIdPerfil())) {
+                throw new AccesoDenegado("No tienes permisos para ver este perfil");
             }
-        } else if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: rol no autorizado");
+            return Optional.of(mapToDTO(usuario));
         }
-        return Optional.of(mapToDTO(usuario));
+
+        // Cualquier otro rol no reconocido
+        throw new AccesoDenegado("Rol no autorizado: " + rol);
     }
 
-    // ========== POST (crear) - solo EMPLEADO o ADMIN ==========
+    // POST (crear) - solo EMPLEADO o ADMIN
     public UsuarioResponseDTO guardar(UsuarioRequestDTO dto, String rol) {
         if (!esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: solo empleados o administradores pueden crear usuarios");
+            throw new AccesoDenegado("Acceso denegado: solo empleados o administradores pueden crear usuarios");
         }
 
-        // Validar correo único
+        // Validar correo unico
         if (usuarioRepository.findByCorreoElectronico(dto.getCorreoElectronico()).isPresent()) {
-            throw new RuntimeException("El correo electrónico ya está en uso");
+            throw new ApiException("Ya existe un usuario con ese email", HttpStatus.CONFLICT);
         }
 
         Usuario usuario = new Usuario();
@@ -87,50 +102,56 @@ public class UsuarioService {
         tarjeta.setCategoriaVip("NUEVO");
         usuario.setPuntos(tarjeta);
 
+        log.info("[MS-USUARIOS] Usuario creado: correo={}", dto.getCorreoElectronico());
         return mapToDTO(usuarioRepository.save(usuario));
     }
 
-    // ========== PUT (actualizar) ==========
+    // PUT (actualizar)
     public Optional<UsuarioResponseDTO> actualizar(Long id, UsuarioRequestDTO dto, String rol, Long idUsuarioLogueado) {
         Usuario existente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFound("Usuario no encontrado"));
 
         // USER solo puede actualizar su propio perfil y solo ciertos campos
+        // DESPUÉS — lógica correcta, bloquea editar perfil AJENO
         if (esRolPermitido(rol, "USER")) {
-            if (!idUsuarioLogueado.equals(existente.getIdPerfil())) {
-                throw new RuntimeException("Acceso denegado: no puedes actualizar otro usuario");
+            if (idUsuarioLogueado == null || !idUsuarioLogueado.equals(existente.getIdPerfil())) {
+                throw new AccesoDenegado("Acceso denegado: no puedes actualizar otro usuario");
             }
-            // USER solo puede modificar nombreCompleto y direccionFisica
             existente.setNombreCompleto(dto.getNombreCompleto());
             existente.setDireccionFisica(dto.getDireccionFisica());
-            // No puede cambiar correo
         } else if (esRolPermitido(rol, "EMPLEADO", "ADMIN")) {
-            // EMPLEADO/ADMIN pueden modificar todo excepto quizás el correo
+            // EMPLEADO/ADMIN pueden modificar todo excepto el correo
             existente.setNombreCompleto(dto.getNombreCompleto());
             existente.setDireccionFisica(dto.getDireccionFisica());
             // Opcional: permitir cambio de correo solo a ADMIN
-            if (dto.getCorreoElectronico() != null && !dto.getCorreoElectronico().equals(existente.getCorreoElectronico())) {
+            if (dto.getCorreoElectronico() != null
+                    && !dto.getCorreoElectronico().equals(existente.getCorreoElectronico())) {
                 if (esRolPermitido(rol, "ADMIN")) {
                     existente.setCorreoElectronico(dto.getCorreoElectronico());
                 } else {
-                    throw new RuntimeException("Solo administradores pueden cambiar el correo electrónico");
+                    throw new AccesoDenegado("Solo administradores pueden cambiar el correo electrónico");
                 }
             }
         } else {
-            throw new RuntimeException("Acceso denegado: rol no autorizado");
+            throw new AccesoDenegado("Acceso denegado: rol no autorizado");
         }
-
+        log.info("[MS-USUARIOS] Usuario ID {} actualizado por rol {}", id, rol);
         return Optional.of(mapToDTO(usuarioRepository.save(existente)));
     }
 
-    // ========== DELETE - solo ADMIN ==========
+    // DELETE - solo ADMIN
     public void eliminar(Long id, String rol) {
         if (!esRolPermitido(rol, "ADMIN")) {
-            throw new RuntimeException("Acceso denegado: solo administradores pueden eliminar usuarios");
+            throw new AccesoDenegado("Acceso denegado: solo administradores pueden eliminar usuarios");
         }
         if (!usuarioRepository.existsById(id)) {
-            throw new RuntimeException("Usuario no encontrado");
+            throw new NotFound("Usuario no encontrado");
         }
+        log.info("[MS-USUARIOS] Usuario ID {} eliminado por rol {}", id, rol);
         usuarioRepository.deleteById(id);
+    }
+
+    public boolean existePorId(Long id) {
+        return usuarioRepository.existsById(id);
     }
 }

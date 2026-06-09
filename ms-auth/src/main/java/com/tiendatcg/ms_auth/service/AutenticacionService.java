@@ -1,6 +1,12 @@
 package com.tiendatcg.ms_auth.service;
 
+import com.tiendatcg.ms_auth.exception.ApiException;
+import com.tiendatcg.ms_auth.exception.AccesoDenegado;
+import com.tiendatcg.ms_auth.exception.NotFound;
+import com.tiendatcg.ms_auth.exception.DependenciaFallida;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +21,9 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AutenticacionService {
-    // Roles que el sistema reconoce
+
     private static final java.util.Set<String> ROLES_PERMITIDOS = java.util.Set.of("USER", "EMPLEADO", "ADMIN");
 
     private final AuthRepository repository;
@@ -24,87 +31,7 @@ public class AutenticacionService {
     private final UsuarioClient usuarioClient;
     private final JwtService jwtService;
 
-    public AuthResponseDTO registrar(AuthRequestDTO dto) {
-
-        // 1. Validar que el rol enviado existe en el sistema
-        String rolSolicitado = dto.getRol() != null
-                ? dto.getRol().toUpperCase().trim()
-                : "";
-
-        if (!ROLES_PERMITIDOS.contains(rolSolicitado)) {
-            throw new RuntimeException(
-                    "Rol inválido. Los roles permitidos son: " + ROLES_PERMITIDOS);
-        }
-
-        // 2. Registro público solo puede crear USER
-        if ("ADMIN".equals(rolSolicitado) || "EMPLEADO".equals(rolSolicitado)) {
-            throw new RuntimeException(
-                    "No tienes permisos para registrar un usuario con ese rol.");
-        }
-
-        // 3. Verificar que el username no esté ya en uso
-        if (repository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new RuntimeException(
-                    "El nombre de usuario ya está en uso.");
-        }
-
-        // 4. Crear cuenta — idUsuarioRef es opcional, se vincula después
-        Autenticacion user = new Autenticacion();
-        user.setIdUsuarioRef(dto.getIdUsuarioRef()); // puede ser null
-        user.setUsername(dto.getUsername());
-        user.setPassword(encoder.encode(dto.getPassword()));
-        user.setRol(rolSolicitado);
-
-        return mapToDTO(repository.save(user), null);
-    }
-
-    public AuthResponseDTO login(String username, String password) {
-        Autenticacion user = repository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en el sistema"));
-
-        if (!encoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("La contraseña ingresada es incorrecta");
-        }
-
-        // Cargamos los datos extra
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("rol", user.getRol());
-        extraClaims.put("idUsuarioRef", user.getIdUsuarioRef());
-
-        // generar el token
-        String token = jwtService.generarToken(extraClaims, user.getUsername());
-
-        return mapToDTO(user, token);
-    }
-
-    // validar token
-    public AuthResponseDTO validarToken(String token) {
-        if (token == null || token.trim().isEmpty()) {
-            throw new RuntimeException("Token no proporcionado");
-        }
-
-        // eliminamos el barerd
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        try {
-            // extraer usuario
-            String username = jwtService.extraerUsername(token);
-
-            Autenticacion user = repository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado para el token"));
-
-            // retornamos en caso de fallo
-            return mapToDTO(user, token);
-
-        } catch (Exception e) {
-            // atrapamos en caso de alguna exception
-            throw new RuntimeException("Token inválido o expirado");
-        }
-    }
-
-    // ResponseDTO
+    // Map
     private AuthResponseDTO mapToDTO(Autenticacion user, String token) {
         return new AuthResponseDTO(
                 user.getIdAuth(),
@@ -114,24 +41,118 @@ public class AutenticacionService {
                 token);
     }
 
+    // Registrar
+    public AuthResponseDTO registrar(AuthRequestDTO dto) {
+
+        String rolSolicitado = dto.getRol() != null
+                ? dto.getRol().toUpperCase().trim()
+                : "";
+
+        if (!ROLES_PERMITIDOS.contains(rolSolicitado)) {
+            throw new ApiException("Rol inválido. Los roles permitidos son: " + ROLES_PERMITIDOS,
+                    org.springframework.http.HttpStatus.BAD_REQUEST);
+        }
+
+        if ("ADMIN".equals(rolSolicitado) || "EMPLEADO".equals(rolSolicitado)) {
+            throw new AccesoDenegado("No tienes permisos para registrar un usuario con ese rol.");
+        }
+
+        if (repository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new ApiException("El nombre de usuario ya está en uso.",
+                    org.springframework.http.HttpStatus.CONFLICT);
+        }
+
+        Autenticacion user = new Autenticacion();
+        user.setIdUsuarioRef(dto.getIdUsuarioRef());
+        user.setUsername(dto.getUsername());
+        user.setPassword(encoder.encode(dto.getPassword()));
+        user.setRol(rolSolicitado);
+
+        log.info("[MS-AUTH] Nueva cuenta registrada: username={} rol={}",
+                dto.getUsername(), rolSolicitado);
+        return mapToDTO(repository.save(user), null);
+    }
+
+    // Login
+    public AuthResponseDTO login(String username, String password) {
+        Autenticacion user = repository.findByUsername(username)
+                .orElseThrow(() -> new NotFound("Usuario no encontrado en el sistema"));
+
+        if (!encoder.matches(password, user.getPassword())) {
+            log.warn("[MS-AUTH] Intento de login fallido para username={}", username);
+            throw new AccesoDenegado("La contraseña ingresada es incorrecta");
+        }
+
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("rol", user.getRol());
+        extraClaims.put("idUsuarioRef", user.getIdUsuarioRef());
+
+        String token = jwtService.generarToken(extraClaims, user.getUsername());
+
+        log.info("[MS-AUTH] Login exitoso: username={} rol={}", user.getUsername(), user.getRol());
+        return mapToDTO(user, token);
+    }
+
+    // Validar Token
+    public AuthResponseDTO validarToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new AccesoDenegado("Token no proporcionado");
+        }
+
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        try {
+            String username = jwtService.extraerUsername(token);
+
+            Autenticacion user = repository.findByUsername(username)
+                    .orElseThrow(() -> new NotFound("Usuario no encontrado para el token"));
+
+            log.debug("[MS-AUTH] Token validado para username={}", username);
+            return mapToDTO(user, token);
+
+        } catch (NotFound e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("[MS-AUTH] Token inválido o expirado: {}", e.getMessage());
+            throw new AccesoDenegado("Token inválido o expirado");
+        }
+    }
+
+    // Vincular Usuario
     public AuthResponseDTO vincularUsuario(Long idAuth, Long idUsuarioRef) {
         if (idUsuarioRef == null) {
-            throw new RuntimeException("El idUsuarioRef es obligatorio para vincular.");
+            throw new ApiException("El idUsuarioRef es obligatorio para vincular.",
+                    org.springframework.http.HttpStatus.BAD_REQUEST);
         }
 
         Autenticacion user = repository.findById(idAuth)
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new NotFound(
                         "Cuenta de autenticación no encontrada con ID: " + idAuth));
 
-        // Verificar que el usuario existe en ms-usuarios
+        boolean existe;
         try {
-            usuarioClient.verificarExistencia(idUsuarioRef);
+            existe = usuarioClient.verificarExistencia(idUsuarioRef);
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "El usuario con ID " + idUsuarioRef + " no existe en ms-usuarios.");
+            log.error("[MS-AUTH] ms-usuarios no disponible al verificar ID {}: {}",
+                    idUsuarioRef, e.getMessage());
+            throw new DependenciaFallida(
+                    "No se pudo verificar el usuario con ID " + idUsuarioRef
+                            + " en ms-usuarios.");
+        }
+
+        if (!existe) {
+            log.error("[MS-AUTH] Fallback activado: ms-usuarios retornó false para ID {}",
+                    idUsuarioRef);
+            throw new DependenciaFallida(
+                    "No se pudo verificar el usuario con ID " + idUsuarioRef
+                            + " en ms-usuarios.");
         }
 
         user.setIdUsuarioRef(idUsuarioRef);
+        log.info("[MS-AUTH] Cuenta ID {} vinculada a usuario ID {}", idAuth, idUsuarioRef);
         return mapToDTO(repository.save(user), null);
     }
+
 }

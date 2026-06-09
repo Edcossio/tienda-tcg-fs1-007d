@@ -4,8 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name="ms-pedidos", path="/api/pedidos")
-
+@FeignClient(name = "ms-pedidos", path = "/api/pedidos", fallback = PedidoClientFallback.class)
 public interface PedidoClient {
 
     @GetMapping("/validar-envio/{idPedido}")
@@ -16,5 +15,3 @@ public interface PedidoClient {
             @PathVariable("idPedido") Long idPedido,
             @PathVariable("idUsuario") Long idUsuario);
 }
-    
-

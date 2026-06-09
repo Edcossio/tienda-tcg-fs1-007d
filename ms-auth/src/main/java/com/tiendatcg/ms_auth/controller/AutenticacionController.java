@@ -47,12 +47,7 @@ public class AutenticacionController {
     @PutMapping("/vincular/{idAuth}")
     public ResponseEntity<AuthResponseDTO> vincularUsuario(
             @PathVariable Long idAuth,
-            @RequestBody Map<String, Long> body,
-            @RequestHeader("X-User-Rol") String rol) {
-
-        if (!"ADMIN".equals(rol) && !"EMPLEADO".equals(rol)) {
-            return ResponseEntity.status(403).build();
-        }
+            @RequestBody Map<String, Long> body) {
 
         return ResponseEntity.ok(authService.vincularUsuario(idAuth, body.get("idUsuarioRef")));
     }
