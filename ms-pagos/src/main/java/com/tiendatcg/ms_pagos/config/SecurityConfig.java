@@ -1,4 +1,4 @@
-package com.tiendatcg.ms_precios.config;
+package com.tiendatcg.ms_pagos.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -39,7 +39,6 @@ public class SecurityConfig {
                                 "/v3/api-docs.yaml")
                         .permitAll()
                         .anyRequest().authenticated());
-
         return http.build();
     }
 
@@ -65,21 +64,21 @@ public class SecurityConfig {
 
                 if (userId == null || userId.isBlank() ||
                         userRol == null || userRol.isBlank()) {
-
-                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                    response.setContentType("application/json");
-                    response.getWriter().write(
-                            "{\"error\": \"Acceso no autorizado. " +
-                                    "Solicitud debe pasar por el Gateway.\"}");
+                    if (!response.isCommitted()) {
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write(
+                                "{\"error\": \"Acceso no autorizado. " +
+                                        "Solicitud debe pasar por el Gateway.\"}");
+                        response.getWriter().flush();
+                    }
                     return;
                 }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
+                        userId, null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + userRol)));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
                 filterChain.doFilter(request, response);
             }
         };
