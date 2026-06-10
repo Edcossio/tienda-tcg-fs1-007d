@@ -106,7 +106,17 @@
             <artifactId>spring-boot-starter-webmvc</artifactId>
 
         </dependency>
-
+<!-- Swagger / OpenAPI -->
+		<dependency>
+    		<groupId>org.springdoc</groupId>
+    		<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    		<version>2.8.9</version>
+		</dependency>
+<!-- HATEOAS -->
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-hateoas</artifactId>
+		</dependency>
         <dependency>
 
             <groupId>org.springframework.cloud</groupId>
@@ -172,6 +182,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>2.4.3</version>
             <scope>test</scope>
         </dependency>
         

@@ -32,6 +32,12 @@ public class SecurityConfig {
                 .addFilterBefore(gatewayHeaderFilter(),
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml")
+                        .permitAll()
                         .requestMatchers("/api/usuarios/validar-user/**").permitAll()
                         .anyRequest().authenticated());
 
@@ -48,9 +54,10 @@ public class SecurityConfig {
                     throws ServletException, IOException {
 
                 String path = request.getRequestURI();
-
-                // Endpoint interno — no requiere headers del Gateway
-                if (path.startsWith("/api/usuarios/validar-user/")) {
+                            // Permitir acceso sin autenticacion a rutas publicas
+                if (path.startsWith("/api/usuarios/validar-user/") ||
+                        path.startsWith("/swagger-ui") ||
+                        path.startsWith("/v3/api-docs")) {
                     filterChain.doFilter(request, response);
                     return;
                 }

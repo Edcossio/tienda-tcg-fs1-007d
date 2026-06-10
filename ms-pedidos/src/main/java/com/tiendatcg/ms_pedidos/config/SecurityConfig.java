@@ -1,4 +1,4 @@
-package com.tiendatcg.ms_precios.config;
+package com.tiendatcg.ms_pedidos.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,13 +33,14 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/pedidos/validar-envio/**",
+                                "/api/pedidos/validar-propietario/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml")
                         .permitAll()
                         .anyRequest().authenticated());
-
         return http.build();
     }
 
@@ -54,8 +55,10 @@ public class SecurityConfig {
 
                 String path = request.getRequestURI();
 
-                if (path.startsWith("/swagger-ui") ||
-                        path.startsWith("/v3/api-docs")) {
+                // Endpoints internos — llamados por ms-pagos sin pasar por Gateway
+                if (path.startsWith("/api/pedidos/validar-envio/") ||
+                        path.startsWith("/swagger-ui") ||
+                        path.startsWith("/v3/api-docs") || path.startsWith("/api/pedidos/validar-propietario/")) {
                     filterChain.doFilter(request, response);
                     return;
                 }
@@ -65,21 +68,21 @@ public class SecurityConfig {
 
                 if (userId == null || userId.isBlank() ||
                         userRol == null || userRol.isBlank()) {
-
-                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                    response.setContentType("application/json");
-                    response.getWriter().write(
-                            "{\"error\": \"Acceso no autorizado. " +
-                                    "Solicitud debe pasar por el Gateway.\"}");
+                    if (!response.isCommitted()) {
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write(
+                                "{\"error\": \"Acceso no autorizado. " +
+                                        "Solicitud debe pasar por el Gateway.\"}");
+                        response.getWriter().flush();
+                    }
                     return;
                 }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
+                        userId, null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + userRol)));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
                 filterChain.doFilter(request, response);
             }
         };

@@ -32,20 +32,23 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
-                                                // Rutas públicas — única fuente de verdad
+                                                // Rutas públicas de negocio
                                                 .requestMatchers(
                                                                 "/api/auth/login",
-                                                                "/api/auth/registrar")
-                                                .permitAll()
-                                                // Rutas internas entre microservicios
-                                                .requestMatchers(
+                                                                "/api/auth/registrar",
                                                                 "/api/auth/validar-token",
                                                                 "/api/auth/extraer-claims")
+                                                .permitAll()
+                                                // Rutas de Swagger — acceso libre
+                                                .requestMatchers(
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html",
+                                                                "/v3/api-docs/**",
+                                                                "/v3/api-docs.yaml")
                                                 .permitAll()
                                                 // Rutas protegidas por rol
                                                 .requestMatchers("/api/auth/vincular/**")
                                                 .hasAnyRole("ADMIN", "EMPLEADO")
-                                                // Todo lo demás requiere autenticación
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthenticationFilter,
                                                 UsernamePasswordAuthenticationFilter.class);
