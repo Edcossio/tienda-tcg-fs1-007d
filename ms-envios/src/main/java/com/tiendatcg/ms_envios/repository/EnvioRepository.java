@@ -1,10 +1,9 @@
 package com.tiendatcg.ms_envios.repository;
 
-import com.tiendatcg.ms_envios.model.Envio;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.tiendatcg.ms_envios.model.Envio;
+import java.util.Optional;
 
-@Repository
 public interface EnvioRepository extends JpaRepository<Envio, Long> {
-    // JpaRepository ya trae el save() y el findAll() por defecto
+    Optional<Envio> findByIdPedidoRef(Long idPedidoRef);
 }

@@ -1,14 +1,14 @@
 package com.tiendatcg.ms_notificaciones.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class NotificacionRequestDTO {
-    private Long idUsuario;
+    private Long idUsuarioDestino;
+    private String titulo;
     private String mensaje;
-    private String tipo;
+
+    public Long getIdUsuarioDestino() { return idUsuarioDestino; }
+    public void setIdUsuarioDestino(Long idUsuarioDestino) { this.idUsuarioDestino = idUsuarioDestino; }
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
 }
