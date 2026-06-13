@@ -1,4 +1,4 @@
-package com.tiendatcg.ms_resenas.exception;
+package com.tiendatcg.ms_notificaciones.exception;
 
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, String>> handleApiException(ApiException ex) {
-        log.warn("[MS-RESENAS] {}: {}", ex.getStatus(), ex.getMessage());
+        log.warn("[MS-NOTIFICACIONES] {}: {}", ex.getStatus(), ex.getMessage());
         return ResponseEntity
                 .status(ex.getStatus())
                 .body(Map.of("error", ex.getMessage()));
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
-        log.error("[MS-RESENAS] Error inesperado: {}", ex.getMessage(), ex);
+        log.error("[MS-NOTIFICACIONES] Error inesperado: {}", ex.getMessage(), ex);
         return ResponseEntity.internalServerError()
                 .body(Map.of("error", "Error interno del servidor. Contacte al administrador."));
     }
