@@ -196,6 +196,7 @@ class UsuarioServiceTest {
     }
 
     // eliminar
+    @Test
     @DisplayName("debería lanzar RecursoNoEncontrado al eliminar usuario inexistente")
     void shouldThrowRecursoNoEncontradoWhenDeletingNonExistentUser() {
         // Given

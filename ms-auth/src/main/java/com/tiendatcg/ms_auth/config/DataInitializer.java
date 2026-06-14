@@ -1,7 +1,7 @@
 package com.tiendatcg.ms_auth.config;
 
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Importamos tu encoder
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Import encoder
 import org.springframework.stereotype.Component;
 
 import com.tiendatcg.ms_auth.model.Autenticacion;
@@ -31,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info(">>> DataInitializer (ms-auth): Base de datos vacía. Insertando cuentas de prueba con hash BCrypt...");
 
-        // Usamos passwordEncoder.encode() para transformar el texto plano en un Hash seguro de una sola via
+        // passwordEncoder.encode() para transformar el texto plano en un Hash seguro de una sola via
         authRepository.save(new Autenticacion(null, 1L, "admin_tcg", passwordEncoder.encode("admin123"), "ADMIN"));
         authRepository.save(new Autenticacion(null, 2L, "empleado_tcg", passwordEncoder.encode("empleado123"), "EMPLEADO"));
         authRepository.save(new Autenticacion(null, 3L, "eduardo_tcg", passwordEncoder.encode("eduardo123"), "USER"));
