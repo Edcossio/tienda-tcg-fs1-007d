@@ -1,4 +1,4 @@
-package com.ms_catalogo.Catalogo.exception;
+ackage com.ms_catalogo.Catalogo.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

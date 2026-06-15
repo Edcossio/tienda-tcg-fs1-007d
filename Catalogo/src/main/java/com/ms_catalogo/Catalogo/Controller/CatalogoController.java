@@ -5,7 +5,6 @@ import com.ms_catalogo.Catalogo.DTOs.CatalogoResponseDTO;
 import com.ms_catalogo.Catalogo.Service.CatalogoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +29,7 @@ public class CatalogoController {
 
     @PostMapping
     public ResponseEntity<CatalogoResponseDTO> crear(@Valid @RequestBody CatalogoRequestDTO requestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(catalogoService.crear(requestDTO));
+        return ResponseEntity.status(201).body(catalogoService.crear(requestDTO));
     }
 
     @PutMapping("/{id}")

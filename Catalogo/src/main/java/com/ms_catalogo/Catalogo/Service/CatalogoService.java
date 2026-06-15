@@ -6,6 +6,7 @@ import com.ms_catalogo.Catalogo.Repository.CatalogoRepository;
 import com.ms_catalogo.Catalogo.exception.CartaNoEncontradaException;
 import com.ms_catalogo.Catalogo.model.Catalogo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,17 +16,20 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CatalogoService {
 
     private final CatalogoRepository catalogoRepository;
 
     public List<CatalogoResponseDTO> obtenerTodas() {
+        log.debug("[ms-catalogo] Obteniendo todas las cartas");
         return catalogoRepository.obtenerTodasOrdenadas().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     public CatalogoResponseDTO obtenerPorId(Long id) {
+        log.debug("[ms-catalogo] Buscando carta ID={}", id);
         return catalogoRepository.findById(id)
                 .map(this::mapToResponse)
                 .orElseThrow(() -> new CartaNoEncontradaException(id));
@@ -35,7 +39,10 @@ public class CatalogoService {
         if (catalogoRepository.existsByNombre(request.getNombre())) {
             throw new RuntimeException("Ya existe una carta con el nombre: " + request.getNombre());
         }
-        return mapToResponse(catalogoRepository.save(mapToEntity(request)));
+        Catalogo carta = mapToEntity(request);
+        Catalogo guardada = catalogoRepository.save(carta);
+        log.info("[ms-catalogo] Carta creada con ID={}", guardada.getId());
+        return mapToResponse(guardada);
     }
 
     public CatalogoResponseDTO actualizar(Long id, CatalogoRequestDTO request) {
@@ -54,6 +61,7 @@ public class CatalogoService {
         carta.setCategoria(request.getCategoria());
         carta.setFechaActualizacion(LocalDateTime.now());
 
+        log.info("[ms-catalogo] Carta actualizada ID={}", id);
         return mapToResponse(catalogoRepository.save(carta));
     }
 
@@ -62,6 +70,7 @@ public class CatalogoService {
             throw new CartaNoEncontradaException(id);
         }
         catalogoRepository.deleteById(id);
+        log.info("[ms-catalogo] Carta eliminada ID={}", id);
     }
 
     public Optional<CatalogoResponseDTO> buscarPorNombre(String nombre) {
@@ -128,8 +137,6 @@ public class CatalogoService {
                 .precio(request.getPrecio())
                 .stockBase(request.getStockBase())
                 .categoria(request.getCategoria())
-                .fechaCreacion(LocalDateTime.now())
-                .fechaActualizacion(LocalDateTime.now())
                 .build();
     }
 }

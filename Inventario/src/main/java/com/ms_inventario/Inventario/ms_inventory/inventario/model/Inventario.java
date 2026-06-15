@@ -1,11 +1,6 @@
-package com.ms_inventario.Inventario.ms_inventory.inventario.model;
+package com.ms_inventario.Inventario.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,21 +11,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "inventarios")
+@Table(name = "INVENTARIOS")
 public class Inventario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "ID_CARTA_REF", nullable = false)
     private Long idCartaRef;
 
-    @Column(nullable = false)
+    @Column(name = "CANTIDAD", nullable = false)
     private Integer cantidad;
 
-    @Column(nullable = false)
+    @Column(name = "ESTADO_CARTA", nullable = false, length = 50)
     private String estadoCarta;
 
+    @Column(name = "UBICACION", length = 200)
     private String ubicacion;
 }
