@@ -20,10 +20,18 @@ public class AutenticacionFilter implements GlobalFilter {
     private final JwtUtil jwtUtil;
 
     private static final List<String> RUTAS_PUBLICAS = List.of(
+            "/docs",
+            "/index.html",
             "/api/auth/login",
             "/api/auth/registrar",
             "/api/auth/validar-token",
-            "/api/auth/extraer-claims");
+            "/api/auth/extraer-claims",
+            // Swagger
+            "/swagger-ui.html",
+            "/swagger-ui",
+            "/swagger/",
+            "/v3/api-docs",
+            "/webjars/");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
