@@ -1,4 +1,4 @@
-package com.tiendatcg.ms_envios.config;
+package com.tiendatcg.ms_resenas.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(
-        title = "API de Envios - Tienda TCG",
+        title = "API de Reseñas - Tienda TCG",
         version = "1.0",
-        description = "TiendaTCG — Gestión de envíos"
+        description = "TiendaTCG — Gestión de reseñas"
     ),
     security = @SecurityRequirement(name = "bearerAuth")
 )
