@@ -1,7 +1,7 @@
 package com.tiendatcg.ms_notificaciones.config;
 
 import com.tiendatcg.ms_notificaciones.model.Notificacion;
-import com.tiendatcg.ms_notificaciones.repository.NotificacionRepository; // Ajusta a tu paquete real
+import com.tiendatcg.ms_notificaciones.repository.NotificacionRepository; 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -59,7 +59,7 @@ public class DataInitializer implements CommandLineRunner {
         noti4.setMensaje("A alguien le ha resultado útil tu reseña sobre Mewtwo EX.");
         noti4.setLeida(false);
 
-        // Guardado en lote (batch) para mayor rendimiento
+        
         notificacionRepository.saveAll(List.of(noti1, noti2, noti3, noti4));
 
         log.info(">>> DataInitializer (ms-notificaciones): Carga completada. {} notificaciones en el buzón.",
