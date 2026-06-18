@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TiendaTCG — API Documentation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px;
+    }
+    header { text-align: center; margin-bottom: 48px; }
+    header h1 { font-size: 2rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    header p { margin-top: 8px; color: #94a3b8; font-size: 0.95rem; }
+    .badge {
+      display: inline-block; margin-top: 12px;
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 999px; padding: 4px 14px;
+      font-size: 0.78rem; color: #64748b;
+    }
+    .badge span { color: #22c55e; font-weight: 600; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px; width: 100%; max-width: 960px;
+    }
+    .card {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 12px; padding: 20px 24px;
+      text-decoration: none; color: inherit;
+      transition: border-color 0.2s, transform 0.15s;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .card:hover { border-color: #6366f1; transform: translateY(-2px); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; }
+    .card-name { font-size: 0.85rem; font-weight: 600; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-port {
+      font-size: 0.75rem; background: #0f172a;
+      border: 1px solid #334155; border-radius: 6px;
+      padding: 2px 8px; color: #64748b; font-family: monospace;
+    }
+    .card-desc { font-size: 0.88rem; color: #94a3b8; line-height: 1.5; }
+    .card-footer {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 4px; font-size: 0.78rem; color: #6366f1; font-weight: 500;
+    }
+    .card-footer::before {
+      content: ''; display: inline-block;
+      width: 6px; height: 6px; background: #22c55e; border-radius: 50%;
+    }
+    .section-title {
+      width: 100%; max-width: 960px;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: #475569; margin-bottom: 4px; margin-top: 32px;
+    }
+    footer { margin-top: 64px; font-size: 0.78rem; color: #334155; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🃏 TiendaTCG — API Docs</h1>
+    <p>Documentación de microservicios — DSY1103 Desarrollo FullStack I</p>
+    <div class="badge">Gateway <span>UP</span> · localhost:9000</div>
+  </header>
+
+  <div class="section-title">Autenticación & Usuarios</div>
+  <div class="grid">
+    <a class="card" href="http://localhost:8080/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-auth</span>
+        <span class="card-port">:8080</span>
+      </div>
+      <div class="card-desc">Login, registro y validación de tokens JWT. Punto de entrada del sistema.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+    <a class="card" href="http://localhost:8081/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-usuarios</span>
+        <span class="card-port">:8081</span>
+      </div>
+      <div class="card-desc">Gestión de perfiles, fidelidad VIP y puntos de cliente.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+  </div>
+
+  <div class="section-title">Catálogo & Precios</div>
+  <div class="grid">
+    <a class="card" href="http://localhost:8085/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-catalogo</span>
+        <span class="card-port">:8085</span>
+      </div>
+      <div class="card-desc">Catálogo de cartas TCG, búsqueda y gestión de productos disponibles.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+    <a class="card" href="http://localhost:8082/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-precios</span>
+        <span class="card-port">:8082</span>
+      </div>
+      <div class="card-desc">Historial de precios de cartas TCG y registro de valor de mercado.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+  </div>
+
+  <div class="section-title">Inventario de Usuario</div>
+  <div class="grid">
+    <a class="card" href="http://localhost:8088/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-inventario</span>
+        <span class="card-port">:8088</span>
+      </div>
+      <div class="card-desc">Cartas en pertenencia de cada usuario — colección personal y historial de adquisiciones.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+  </div>
+
+  <div class="section-title">Pedidos & Pagos</div>
+  <div class="grid">
+    <a class="card" href="http://localhost:8083/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-pagos</span>
+        <span class="card-port">:8083</span>
+      </div>
+      <div class="card-desc">Procesamiento de pagos, métodos de pago y estados de transacción.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+    <a class="card" href="http://localhost:8084/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-pedidos</span>
+        <span class="card-port">:8084</span>
+      </div>
+      <div class="card-desc">Ciclo de vida de pedidos, estados y gestión de órdenes de compra.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+  </div>
+
+  <div class="section-title">Logística & Comunicación</div>
+  <div class="grid">
+    <a class="card" href="http://localhost:8090/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-envios</span>
+        <span class="card-port">:8090</span>
+      </div>
+      <div class="card-desc">Seguimiento de envíos y gestión logística de despacho.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+    <a class="card" href="http://localhost:8092/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-notificaciones</span>
+        <span class="card-port">:8092</span>
+      </div>
+      <div class="card-desc">Envío de notificaciones y alertas a usuarios del sistema.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+    <a class="card" href="http://localhost:8091/swagger-ui/index.html" target="_blank">
+      <div class="card-header">
+        <span class="card-name">ms-resenas</span>
+        <span class="card-port">:8091</span>
+      </div>
+      <div class="card-desc">Reseñas y valoraciones de cartas por parte de los clientes.</div>
+      <div class="card-footer">Abrir Swagger UI →</div>
+    </a>
+  </div>
+
+  <footer>
+    TiendaTCG · Spring Boot 4 · Spring Cloud · Oracle Autonomous DB · Puerto Gateway: 9000
+  </footer>
+
+</body>
+</html>

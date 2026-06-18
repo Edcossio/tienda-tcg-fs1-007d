@@ -23,7 +23,7 @@
     </properties>
 
     <dependencies>
-        <!-- Gateway reactivo (WebFlux) - ¡esta es la correcta! -->
+        <!-- Gateway reactivo (WebFlux) -  -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
@@ -65,6 +65,13 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
+        </dependency>
+
+        <!-- SpringDoc para WebFlux-->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+            <version>3.0.0</version>
         </dependency>
 
         <dependency>

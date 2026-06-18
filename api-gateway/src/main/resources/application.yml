@@ -8,7 +8,12 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: false   # Desactivado para evitar conflictos
+          enabled: false
+  webflux:
+    static-path-pattern: /webjars/**
+  web:
+    resources:
+      add-mappings: true
 
 eureka:
   client:
@@ -26,3 +31,28 @@ logging:
 
 jwt:
   secret: VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGFuZCBsb25nIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduYXR1cmU=
+
+
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui/index.html
+    urls:
+      - name: ms-auth
+        url: /swagger/ms-auth/v3/api-docs
+      - name: ms-usuarios
+        url: /swagger/ms-usuarios/v3/api-docs
+      - name: ms-pedidos
+        url: /swagger/ms-pedidos/v3/api-docs
+      - name: ms-pagos
+        url: /swagger/ms-pagos/v3/api-docs
+      - name: ms-precios
+        url: /swagger/ms-precios/v3/api-docs
+      - name: ms-envios
+        url: /swagger/ms-envios/v3/api-docs
+      - name: ms-notificaciones
+        url: /swagger/ms-notificaciones/v3/api-docs
+      - name: ms-resenas
+        url: /swagger/ms-resenas/v3/api-docs
+  api-docs:
+    enabled: false
